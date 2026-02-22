@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Header } from "@/components/layout/Header";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Table,
   TableBody,
@@ -10,28 +12,68 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ListFilter } from "@/components/ui/list-filter";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+import { ExportButton } from "@/components/ui/export-button";
 import { ACCOUNT_STATUS } from "@/lib/constants/status";
 import { formatDate } from "@/lib/utils/format";
 import type { ProfileListItem } from "@/types";
 
-async function getUsers(): Promise<ProfileListItem[]> {
-  const adminClient = createAdminClient();
-  const { data } = await adminClient
-    .from("profiles")
-    .select("id, name, email, phone, skills, account_status, created_at")
-    .order("created_at", { ascending: false });
-  return data ?? [];
+const PAGE_SIZE = 20;
+
+interface Props {
+  searchParams: Promise<{ q?: string; status?: string; page?: string }>;
 }
 
-export default async function UsersPage() {
-  const users = await getUsers();
+async function getUsers(params: { q?: string; status?: string; page?: string }) {
+  const adminClient = createAdminClient();
+  const page = Number(params.page ?? "1");
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
+  let query = adminClient
+    .from("profiles")
+    .select("id, name, email, phone, skills, account_status, created_at", { count: "exact" });
+
+  if (params.q) {
+    query = query.or(`name.ilike.%${params.q}%,email.ilike.%${params.q}%,phone.ilike.%${params.q}%`);
+  }
+  if (params.status) {
+    query = query.eq("account_status", params.status);
+  }
+
+  const { data, count } = await query
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  return { users: (data ?? []) as ProfileListItem[], total: count ?? 0 };
+}
+
+export default async function UsersPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const { users, total } = await getUsers(params);
 
   return (
     <>
       <Header title="사용자" />
       <main className="flex-1 overflow-y-auto p-6">
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-sm text-muted-foreground">총 {users.length}명</p>
+        <div className="flex items-center justify-between mb-4">
+          <Suspense>
+            <ListFilter
+              searchPlaceholder="이름, 이메일, 연락처 검색..."
+              filters={[
+                {
+                  key: "status",
+                  label: "상태",
+                  options: Object.entries(ACCOUNT_STATUS).map(([k, v]) => ({
+                    value: k,
+                    label: v.label,
+                  })),
+                },
+              ]}
+            />
+          </Suspense>
+          <ExportButton type="users" />
         </div>
 
         <div className="rounded-md border">
@@ -49,8 +91,8 @@ export default async function UsersPage() {
             <TableBody>
               {users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                    사용자가 없습니다.
+                  <TableCell colSpan={6}>
+                    <EmptyState title="사용자가 없습니다." />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -89,6 +131,10 @@ export default async function UsersPage() {
             </TableBody>
           </Table>
         </div>
+
+        <Suspense>
+          <PaginationControls total={total} pageSize={PAGE_SIZE} />
+        </Suspense>
       </main>
     </>
   );

@@ -15,13 +15,20 @@ alter table public.profiles
   add column if not exists referrer_id    uuid references public.profiles(id) on delete set null;
 
 
--- 2. notices 테이블 스케줄링 컬럼 추가
+-- 2. notices 테이블 누락 컬럼 추가
 -- ============================================================
 alter table public.notices
+  add column if not exists is_published boolean not null default false,
   add column if not exists start_at     timestamptz,
   add column if not exists end_at       timestamptz,
   add column if not exists notice_type  text not null default 'immediate'
     check (notice_type in ('immediate', 'scheduled'));
+
+
+-- 2-1. projects 테이블 누락 컬럼 추가
+-- ============================================================
+alter table public.projects
+  add column if not exists category text;
 
 
 -- 3. admin_users 테이블 (신규)
@@ -88,16 +95,34 @@ alter table public.profile_teams enable row level security;
 -- service_role 전용 (관리자 API Route에서 service_role 클라이언트 사용)
 
 
+-- 6. admin_audit_logs 테이블 (신규)
 -- ============================================================
--- 테스트 관리자 계정 삽입 예시 (실행 전 auth.users에 계정 생성 필요)
+create table if not exists public.admin_audit_logs (
+  id           uuid default gen_random_uuid() primary key,
+  admin_id     uuid references public.admin_users(id) on delete set null,
+  admin_name   text not null,
+  action       text not null,
+  resource     text not null,
+  resource_id  text,
+  details      jsonb,
+  created_at   timestamptz not null default now()
+);
+
+alter table public.admin_audit_logs enable row level security;
+-- service_role 전용
+
+create index if not exists idx_audit_logs_created_at on public.admin_audit_logs(created_at desc);
+create index if not exists idx_audit_logs_admin_id on public.admin_audit_logs(admin_id);
+create index if not exists idx_audit_logs_resource on public.admin_audit_logs(resource);
+
+
 -- ============================================================
--- 1. Supabase Auth > Add user로 관리자 이메일/비밀번호 계정 생성
--- 2. 생성된 user id 확인 후 아래 INSERT 실행
---
--- insert into public.admin_users (auth_user_id, name, email, role)
--- values (
---   'auth-user-uuid-here',
---   '관리자 이름',
---   'admin@example.com',
---   'superadmin'
--- );
+-- 마스터 관리자 계정 등록 (Auth 계정 이미 생성됨)
+-- ============================================================
+insert into public.admin_users (auth_user_id, name, email, role)
+values (
+  '50c44f25-762d-4134-8d1b-f4dd21059348',
+  '마스터 관리자',
+  'admin@techmeet.com',
+  'superadmin'
+) on conflict (auth_user_id) do nothing;

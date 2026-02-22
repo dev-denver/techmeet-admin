@@ -1,6 +1,6 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { NextResponse } from "next/server";
+import { apiError } from "./response";
 
 export async function verifyAdmin() {
   const supabase = await createServerSupabaseClient();
@@ -10,7 +10,7 @@ export async function verifyAdmin() {
 
   if (!user) {
     return {
-      error: NextResponse.json({ message: "인증이 필요합니다." }, { status: 401 }),
+      error: apiError("인증이 필요합니다.", 401),
       adminUser: null,
     };
   }
@@ -24,13 +24,23 @@ export async function verifyAdmin() {
 
   if (!adminUser) {
     return {
-      error: NextResponse.json(
-        { message: "관리자 권한이 없습니다." },
-        { status: 403 }
-      ),
+      error: apiError("관리자 권한이 없습니다.", 403),
       adminUser: null,
     };
   }
 
   return { error: null, adminUser, adminClient };
+}
+
+export async function verifySuperAdmin() {
+  const result = await verifyAdmin();
+  if (result.error) return result;
+  if (result.adminUser?.role !== "superadmin") {
+    return {
+      error: apiError("슈퍼관리자 권한이 필요합니다.", 403),
+      adminUser: null,
+      adminClient: null,
+    };
+  }
+  return result;
 }

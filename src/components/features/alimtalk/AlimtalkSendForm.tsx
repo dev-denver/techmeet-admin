@@ -67,7 +67,7 @@ export function AlimtalkSendForm() {
 
     if (!res.ok) {
       const data = await res.json();
-      setError(data.message ?? "발송에 실패했습니다.");
+      setError(data.error?.message ?? "발송에 실패했습니다.");
       return;
     }
 

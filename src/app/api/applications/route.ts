@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { verifyAdmin } from "@/lib/api/verify-admin";
+import { apiSuccess, apiDbError } from "@/lib/api/response";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function GET() {
@@ -16,9 +16,7 @@ export async function GET() {
     `)
     .order("created_at", { ascending: false });
 
-  if (dbError) {
-    return NextResponse.json({ message: dbError.message }, { status: 500 });
-  }
+  if (dbError) return apiDbError(dbError.message);
 
-  return NextResponse.json(data);
+  return apiSuccess(data);
 }

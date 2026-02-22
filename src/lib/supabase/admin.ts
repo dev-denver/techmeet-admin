@@ -6,7 +6,7 @@ import { env } from "@/lib/config/env";
  * 반드시 서버 사이드(API Route, Server Component)에서만 사용
  */
 export function createAdminClient() {
-  return createClient(env.supabase.url, env.supabase.serviceRoleKey(), {
+  return createClient(env.supabase.url, env.supabase.serviceRoleKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,

@@ -5,6 +5,7 @@ import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Sidebar } from "./Sidebar";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface HeaderProps {
   title: string;
@@ -32,10 +33,13 @@ export function Header({ title, adminName }: HeaderProps) {
       {/* 페이지 타이틀 */}
       <h1 className="flex-1 text-lg font-semibold">{title}</h1>
 
-      {/* 관리자 이름 */}
-      {adminName && (
-        <span className="text-sm text-muted-foreground">{adminName}</span>
-      )}
+      {/* 테마 토글 + 관리자 이름 */}
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
+        {adminName && (
+          <span className="text-sm text-muted-foreground">{adminName}</span>
+        )}
+      </div>
     </header>
   );
 }
