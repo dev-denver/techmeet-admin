@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Table,
   TableBody,
@@ -11,34 +13,47 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 import { formatDateTime } from "@/lib/utils/format";
 import { Send } from "lucide-react";
 import type { AlimtalkLog } from "@/types";
 
-async function getAlimtalkLogs(): Promise<AlimtalkLog[]> {
+const PAGE_SIZE = 20;
+
+interface Props {
+  searchParams: Promise<{ page?: string }>;
+}
+
+async function getAlimtalkLogs(params: { page?: string }) {
   const adminClient = createAdminClient();
-  const { data } = await adminClient
+  const page = Number(params.page ?? "1");
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
+  const { data, count } = await adminClient
     .from("alimtalk_logs")
     .select(`
       id, user_id, template_code, template_name, service_type,
       send_type, is_success, sent_at, scheduled_at, error_message, created_at,
       profile:profiles(id, name, email)
-    `)
+    `, { count: "exact" })
     .order("created_at", { ascending: false })
-    .limit(100);
+    .range(from, to);
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (data ?? []) as any[];
+  return { logs: (data ?? []) as any[] as AlimtalkLog[], total: count ?? 0 };
 }
 
-export default async function AlimtalkPage() {
-  const logs = await getAlimtalkLogs();
+export default async function AlimtalkPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const { logs, total } = await getAlimtalkLogs(params);
 
   return (
     <>
       <Header title="알림톡" />
       <main className="flex-1 overflow-y-auto p-6">
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-sm text-muted-foreground">최근 {logs.length}건</p>
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-sm text-muted-foreground">총 {total}건</p>
           <Button asChild size="sm">
             <Link href="/alimtalk/send">
               <Send className="h-4 w-4 mr-2" />
@@ -62,8 +77,8 @@ export default async function AlimtalkPage() {
             <TableBody>
               {logs.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                    발송 내역이 없습니다.
+                  <TableCell colSpan={6}>
+                    <EmptyState title="발송 내역이 없습니다." />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -110,6 +125,10 @@ export default async function AlimtalkPage() {
             </TableBody>
           </Table>
         </div>
+
+        <Suspense>
+          <PaginationControls total={total} pageSize={PAGE_SIZE} />
+        </Suspense>
       </main>
     </>
   );

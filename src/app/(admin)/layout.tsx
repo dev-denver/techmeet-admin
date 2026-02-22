@@ -20,7 +20,7 @@ export default async function AdminRootLayout({
   const adminClient = createAdminClient();
   const { data: adminUser } = await adminClient
     .from("admin_users")
-    .select("name")
+    .select("name, role")
     .eq("auth_user_id", user.id)
     .single();
 
@@ -32,7 +32,7 @@ export default async function AdminRootLayout({
     <div className="flex h-screen overflow-hidden">
       {/* 데스크탑 사이드바 */}
       <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
-        <Sidebar />
+        <Sidebar adminRole={adminUser.role as "superadmin" | "admin"} />
       </aside>
 
       {/* 메인 콘텐츠 영역 - 사이드바 너비만큼 패딩 */}

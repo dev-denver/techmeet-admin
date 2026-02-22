@@ -1,6 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { verifyAdmin } from "@/lib/api/verify-admin";
+import { apiSuccess, apiDbError, apiNotFound, parseBody } from "@/lib/api/response";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { applicationUpdateSchema } from "@/lib/api/schemas";
+import { logAudit } from "@/lib/api/audit";
 
 export async function GET(
   _request: NextRequest,
@@ -21,38 +24,44 @@ export async function GET(
     .eq("id", id)
     .single();
 
-  if (dbError || !data) {
-    return NextResponse.json({ message: "지원서를 찾을 수 없습니다." }, { status: 404 });
-  }
+  if (dbError || !data) return apiNotFound("지원서");
 
-  return NextResponse.json(data);
+  return apiSuccess(data);
 }
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { error } = await verifyAdmin();
+  const { error, adminUser } = await verifyAdmin();
   if (error) return error;
 
+  const { data: body, error: parseError } = await parseBody(request, applicationUpdateSchema);
+  if (parseError) return parseError;
+
   const { id } = await params;
-  const { status, admin_memo } = await request.json();
   const adminClient = createAdminClient();
 
   const { data, error: dbError } = await adminClient
     .from("applications")
     .update({
-      status,
-      admin_memo,
+      ...body,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
     .select()
     .single();
 
-  if (dbError) {
-    return NextResponse.json({ message: dbError.message }, { status: 500 });
-  }
+  if (dbError) return apiDbError(dbError.message);
 
-  return NextResponse.json(data);
+  await logAudit({
+    adminId: adminUser!.id,
+    adminName: adminUser!.name,
+    action: "update",
+    resource: "applications",
+    resourceId: id,
+    details: body,
+  });
+
+  return apiSuccess(data);
 }

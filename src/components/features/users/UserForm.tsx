@@ -85,7 +85,7 @@ export function UserForm({ user }: UserFormProps) {
 
     if (!res.ok) {
       const data = await res.json();
-      setError(data.message ?? "저장에 실패했습니다.");
+      setError(data.error?.message ?? "저장에 실패했습니다.");
       return;
     }
 

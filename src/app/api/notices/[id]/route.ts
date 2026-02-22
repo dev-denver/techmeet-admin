@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { verifyAdmin } from "@/lib/api/verify-admin";
+import { apiSuccess, apiDbError, apiNotFound, parseBody } from "@/lib/api/response";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { noticeUpdateSchema } from "@/lib/api/schemas";
 
 export async function GET(
   _request: NextRequest,
@@ -17,11 +19,9 @@ export async function GET(
     .eq("id", id)
     .single();
 
-  if (dbError || !data) {
-    return NextResponse.json({ message: "공지사항을 찾을 수 없습니다." }, { status: 404 });
-  }
+  if (dbError || !data) return apiNotFound("공지사항");
 
-  return NextResponse.json(data);
+  return apiSuccess(data);
 }
 
 export async function PUT(
@@ -31,8 +31,10 @@ export async function PUT(
   const { error } = await verifyAdmin();
   if (error) return error;
 
+  const { data: body, error: parseError } = await parseBody(request, noticeUpdateSchema);
+  if (parseError) return parseError;
+
   const { id } = await params;
-  const body = await request.json();
   const adminClient = createAdminClient();
 
   const { data, error: dbError } = await adminClient
@@ -42,11 +44,9 @@ export async function PUT(
     .select()
     .single();
 
-  if (dbError) {
-    return NextResponse.json({ message: dbError.message }, { status: 500 });
-  }
+  if (dbError) return apiDbError(dbError.message);
 
-  return NextResponse.json(data);
+  return apiSuccess(data);
 }
 
 export async function DELETE(
@@ -63,9 +63,7 @@ export async function DELETE(
     .delete()
     .eq("id", id);
 
-  if (dbError) {
-    return NextResponse.json({ message: dbError.message }, { status: 500 });
-  }
+  if (dbError) return apiDbError(dbError.message);
 
-  return NextResponse.json({ success: true });
+  return apiSuccess({ deleted: true });
 }

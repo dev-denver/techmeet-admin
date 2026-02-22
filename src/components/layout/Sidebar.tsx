@@ -10,6 +10,8 @@ import {
   FileText,
   Bell,
   MessageSquare,
+  ShieldCheck,
+  ClipboardList,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
@@ -23,13 +25,15 @@ const navItems = [
   { href: "/applications", label: "지원서", icon: FileText },
   { href: "/notices", label: "공지사항", icon: Bell },
   { href: "/alimtalk", label: "알림톡", icon: MessageSquare },
+  { href: "/audit-logs", label: "활동 로그", icon: ClipboardList },
 ];
 
 interface SidebarProps {
   onClose?: () => void;
+  adminRole?: "superadmin" | "admin";
 }
 
-export function Sidebar({ onClose }: SidebarProps) {
+export function Sidebar({ onClose, adminRole }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -75,6 +79,21 @@ export function Sidebar({ onClose }: SidebarProps) {
             </Link>
           );
         })}
+        {adminRole === "superadmin" && (
+          <Link
+            href="/admins"
+            onClick={onClose}
+            className={cn(
+              "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              pathname === "/admins" || pathname.startsWith("/admins/")
+                ? "bg-zinc-800 text-white"
+                : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
+            )}
+          >
+            <ShieldCheck className="h-4 w-4 shrink-0" />
+            관리자 관리
+          </Link>
+        )}
       </nav>
 
       {/* 로그아웃 */}

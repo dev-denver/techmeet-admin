@@ -1,6 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { verifyAdmin } from "@/lib/api/verify-admin";
+import { apiSuccess, apiDbError, apiNotFound, parseBody } from "@/lib/api/response";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { userUpdateSchema } from "@/lib/api/schemas";
+import { logAudit } from "@/lib/api/audit";
 
 export async function GET(
   _request: NextRequest,
@@ -17,22 +20,22 @@ export async function GET(
     .eq("id", id)
     .single();
 
-  if (dbError || !data) {
-    return NextResponse.json({ message: "사용자를 찾을 수 없습니다." }, { status: 404 });
-  }
+  if (dbError || !data) return apiNotFound("사용자");
 
-  return NextResponse.json(data);
+  return apiSuccess(data);
 }
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { error } = await verifyAdmin();
+  const { error, adminUser } = await verifyAdmin();
   if (error) return error;
 
+  const { data: body, error: parseError } = await parseBody(request, userUpdateSchema);
+  if (parseError) return parseError;
+
   const { id } = await params;
-  const body = await request.json();
   const adminClient = createAdminClient();
 
   const { data, error: dbError } = await adminClient
@@ -42,24 +45,30 @@ export async function PUT(
     .select()
     .single();
 
-  if (dbError) {
-    return NextResponse.json({ message: dbError.message }, { status: 500 });
-  }
+  if (dbError) return apiDbError(dbError.message);
 
-  return NextResponse.json(data);
+  await logAudit({
+    adminId: adminUser!.id,
+    adminName: adminUser!.name,
+    action: "update",
+    resource: "users",
+    resourceId: id,
+    details: body,
+  });
+
+  return apiSuccess(data);
 }
 
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { error } = await verifyAdmin();
+  const { error, adminUser } = await verifyAdmin();
   if (error) return error;
 
   const { id } = await params;
   const adminClient = createAdminClient();
 
-  // 소프트 삭제 - account_status를 'withdrawn'으로 변경
   const { data, error: dbError } = await adminClient
     .from("profiles")
     .update({
@@ -71,9 +80,15 @@ export async function DELETE(
     .select()
     .single();
 
-  if (dbError) {
-    return NextResponse.json({ message: dbError.message }, { status: 500 });
-  }
+  if (dbError) return apiDbError(dbError.message);
 
-  return NextResponse.json(data);
+  await logAudit({
+    adminId: adminUser!.id,
+    adminName: adminUser!.name,
+    action: "delete",
+    resource: "users",
+    resourceId: id,
+  });
+
+  return apiSuccess(data);
 }
