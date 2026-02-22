@@ -32,7 +32,7 @@ const userSchema = z.object({
   phone: z.string().nullable(),
   bio: z.string().nullable(),
   skills: z.string(),
-  career_years: z.coerce.number().nullable(),
+  career_years: z.union([z.number(), z.null()]),
   portfolio_url: z.string().url("올바른 URL을 입력해주세요").nullable().or(z.literal("")),
   account_status: z.enum(["active", "withdrawn"]),
   notification_new_project: z.boolean(),
