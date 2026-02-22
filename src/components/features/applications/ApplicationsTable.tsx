@@ -20,7 +20,8 @@ import { formatDate, formatBudget } from "@/lib/utils/format";
 interface ApplicationItem {
   id: string;
   status: string;
-  expected_budget: number | null;
+  expected_rate: number | null;
+  applied_at: string;
   created_at: string;
   project: { id: string; title: string } | { id: string; title: string }[] | null;
   profile: { id: string; name: string; email: string } | { id: string; name: string; email: string }[] | null;
@@ -112,8 +113,8 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
                         {statusConfig?.label ?? app.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{formatBudget(app.expected_budget)}</TableCell>
-                    <TableCell>{formatDate(app.created_at)}</TableCell>
+                    <TableCell>{formatBudget(app.expected_rate)}</TableCell>
+                    <TableCell>{formatDate(app.applied_at ?? app.created_at)}</TableCell>
                   </TableRow>
                 );
               })

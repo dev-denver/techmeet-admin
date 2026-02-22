@@ -33,11 +33,11 @@ async function getUserApplications(profileId: string) {
   const { data } = await adminClient
     .from("applications")
     .select(`
-      id, status, expected_budget, created_at,
+      id, status, expected_rate, applied_at, created_at,
       project:projects(id, title, status)
     `)
-    .eq("profile_id", profileId)
-    .order("created_at", { ascending: false });
+    .eq("freelancer_id", profileId)
+    .order("applied_at", { ascending: false });
   return data ?? [];
 }
 
@@ -135,8 +135,8 @@ export default async function UserDetailPage({
                               {appStatus?.label ?? app.status}
                             </Badge>
                           </TableCell>
-                          <TableCell>{formatBudget(app.expected_budget)}</TableCell>
-                          <TableCell>{formatDate(app.created_at)}</TableCell>
+                          <TableCell>{formatBudget(app.expected_rate)}</TableCell>
+                          <TableCell>{formatDate(app.applied_at ?? app.created_at)}</TableCell>
                         </TableRow>
                       );
                     })

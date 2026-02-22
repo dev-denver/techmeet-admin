@@ -102,7 +102,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
                         ? `${formatBudget(project.budget_min)} ~ ${project.budget_max != null ? formatBudget(project.budget_max) : ""}`
                         : "-"}
                     </TableCell>
-                    <TableCell>{formatDate(project.start_date)}</TableCell>
+                    <TableCell>{formatDate(project.duration_start_date)}</TableCell>
                     <TableCell>{formatDate(project.created_at)}</TableCell>
                   </TableRow>
                 );

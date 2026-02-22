@@ -14,7 +14,7 @@ export async function GET() {
       project:projects(id, title),
       profile:profiles(id, name, email)
     `)
-    .order("created_at", { ascending: false });
+    .order("applied_at", { ascending: false });
 
   if (dbError) return apiDbError(dbError.message);
 

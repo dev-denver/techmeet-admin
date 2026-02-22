@@ -31,8 +31,8 @@ const userSchema = z.object({
   name: z.string().min(1, "이름을 입력해주세요"),
   phone: z.string().nullable(),
   bio: z.string().nullable(),
-  skills: z.string(),
-  career_years: z.union([z.number(), z.null()]),
+  tech_stack: z.string(),
+  experience_years: z.union([z.number(), z.null()]),
   portfolio_url: z.string().url("올바른 URL을 입력해주세요").nullable().or(z.literal("")),
   account_status: z.enum(["active", "withdrawn"]),
   notification_new_project: z.boolean(),
@@ -56,8 +56,8 @@ export function UserForm({ user }: UserFormProps) {
       name: user.name,
       phone: user.phone ?? null,
       bio: user.bio ?? null,
-      skills: user.skills?.join(", ") ?? "",
-      career_years: user.career_years ?? null,
+      tech_stack: user.tech_stack?.join(", ") ?? "",
+      experience_years: user.experience_years ?? null,
       portfolio_url: user.portfolio_url ?? "",
       account_status: user.account_status,
       notification_new_project: user.notification_new_project,
@@ -70,7 +70,7 @@ export function UserForm({ user }: UserFormProps) {
     setError(null);
     const payload = {
       ...values,
-      skills: values.skills
+      tech_stack: values.tech_stack
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean),
@@ -171,7 +171,7 @@ export function UserForm({ user }: UserFormProps) {
           <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
-              name="career_years"
+              name="experience_years"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>경력 (년)</FormLabel>
@@ -217,10 +217,10 @@ export function UserForm({ user }: UserFormProps) {
 
           <FormField
             control={form.control}
-            name="skills"
+            name="tech_stack"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>스킬 (쉼표로 구분)</FormLabel>
+                <FormLabel>기술 스택 (쉼표로 구분)</FormLabel>
                 <FormControl>
                   <Input placeholder="React, TypeScript" {...field} />
                 </FormControl>

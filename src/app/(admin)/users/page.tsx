@@ -33,7 +33,7 @@ async function getUsers(params: { q?: string; status?: string; page?: string }) 
 
   let query = adminClient
     .from("profiles")
-    .select("id, name, email, phone, skills, account_status, created_at", { count: "exact" });
+    .select("id, name, email, phone, tech_stack, account_status, created_at", { count: "exact" });
 
   if (params.q) {
     query = query.or(`name.ilike.%${params.q}%,email.ilike.%${params.q}%,phone.ilike.%${params.q}%`);
@@ -112,8 +112,8 @@ export default async function UsersPage({ searchParams }: Props) {
                       <TableCell>{user.phone ?? "-"}</TableCell>
                       <TableCell>
                         <span className="text-sm text-muted-foreground">
-                          {user.skills?.slice(0, 3).join(", ")}
-                          {user.skills?.length > 3 && ` +${user.skills.length - 3}`}
+                          {user.tech_stack?.slice(0, 3).join(", ")}
+                          {user.tech_stack?.length > 3 && ` +${user.tech_stack.length - 3}`}
                         </span>
                       </TableCell>
                       <TableCell>

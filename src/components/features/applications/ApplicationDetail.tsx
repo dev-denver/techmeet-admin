@@ -13,7 +13,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -24,12 +23,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { APPLICATION_STATUS } from "@/lib/constants/status";
-import { formatDate, formatBudget, formatDateTime } from "@/lib/utils/format";
+import { formatBudget, formatDateTime } from "@/lib/utils/format";
 import type { ApplicationStatus } from "@/lib/constants/status";
 
 const statusSchema = z.object({
-  status: z.enum(["pending", "reviewed", "accepted", "rejected", "withdrawn"]),
-  admin_memo: z.string().optional(),
+  status: z.enum(["pending", "reviewing", "interview", "accepted", "rejected", "withdrawn"]),
 });
 
 type StatusFormValues = z.infer<typeof statusSchema>;
@@ -50,7 +48,6 @@ export function ApplicationDetail({ application }: { application: any }) {
     resolver: zodResolver(statusSchema),
     defaultValues: {
       status: application.status as ApplicationStatus,
-      admin_memo: application.admin_memo ?? "",
     },
   });
 
@@ -97,16 +94,12 @@ export function ApplicationDetail({ application }: { application: any }) {
             </div>
           </div>
           <div>
-            <span className="text-muted-foreground">희망 예산</span>
-            <p className="font-medium">{formatBudget(application.expected_budget)}</p>
-          </div>
-          <div>
-            <span className="text-muted-foreground">가능 시작일</span>
-            <p className="font-medium">{formatDate(application.available_start_date)}</p>
+            <span className="text-muted-foreground">희망 요율</span>
+            <p className="font-medium">{formatBudget(application.expected_rate)}</p>
           </div>
           <div>
             <span className="text-muted-foreground">지원일</span>
-            <p className="font-medium">{formatDateTime(application.created_at)}</p>
+            <p className="font-medium">{formatDateTime(application.applied_at ?? application.created_at)}</p>
           </div>
         </div>
       </div>
@@ -144,19 +137,6 @@ export function ApplicationDetail({ application }: { application: any }) {
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="admin_memo"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>관리자 메모</FormLabel>
-                  <FormControl>
-                    <Textarea rows={3} placeholder="내부 메모 (지원자에게 노출되지 않음)" {...field} />
-                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

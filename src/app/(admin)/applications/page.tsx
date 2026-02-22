@@ -21,9 +21,9 @@ async function getApplications(params: { q?: string; status?: string; page?: str
   let query = adminClient
     .from("applications")
     .select(`
-      id, status, expected_budget, created_at,
+      id, status, expected_rate, applied_at, created_at,
       project:projects(id, title),
-      profile:profiles(id, name, email)
+      profile:profiles!freelancer_id(id, name, email)
     `, { count: "exact" });
 
   if (params.status) {
@@ -31,7 +31,7 @@ async function getApplications(params: { q?: string; status?: string; page?: str
   }
 
   const { data, count } = await query
-    .order("created_at", { ascending: false })
+    .order("applied_at", { ascending: false })
     .range(from, to);
 
   return { applications: data ?? [], total: count ?? 0 };

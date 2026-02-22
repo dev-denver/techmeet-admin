@@ -5,8 +5,8 @@ export const userUpdateSchema = z.object({
   name: z.string().min(1, "이름을 입력해주세요.").optional(),
   phone: z.string().nullable().optional(),
   bio: z.string().nullable().optional(),
-  skills: z.array(z.string()).optional(),
-  career_years: z.union([z.number().min(0), z.null()]).optional(),
+  tech_stack: z.array(z.string()).optional(),
+  experience_years: z.union([z.number().min(0), z.null()]).optional(),
   portfolio_url: z.string().url("올바른 URL을 입력해주세요.").nullable().optional(),
   account_status: z.enum(["active", "withdrawn"]).optional(),
   notification_new_project: z.boolean().optional(),
@@ -20,12 +20,12 @@ export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
 export const projectCreateSchema = z.object({
   title: z.string().min(1, "제목을 입력해주세요.").max(200, "제목은 200자 이내로 입력해주세요."),
   description: z.string().min(1, "설명을 입력해주세요."),
-  status: z.enum(["draft", "open", "in_review", "in_progress", "completed", "cancelled"]),
+  status: z.enum(["recruiting", "in_progress", "completed", "cancelled"]),
   budget_min: z.union([z.number().min(0), z.null()]),
   budget_max: z.union([z.number().min(0), z.null()]),
-  start_date: z.string().nullable(),
-  end_date: z.string().nullable(),
-  skills: z.array(z.string()),
+  duration_start_date: z.string().nullable(),
+  duration_end_date: z.string().nullable(),
+  tech_stack: z.array(z.string()),
   category: z.string().nullable(),
 });
 
@@ -35,8 +35,7 @@ export type ProjectCreateInput = z.infer<typeof projectCreateSchema>;
 
 // ── Applications ──
 export const applicationUpdateSchema = z.object({
-  status: z.enum(["pending", "reviewed", "accepted", "rejected", "withdrawn"]),
-  admin_memo: z.string().nullable().optional(),
+  status: z.enum(["pending", "reviewing", "interview", "accepted", "rejected", "withdrawn"]),
 });
 
 export type ApplicationUpdateInput = z.infer<typeof applicationUpdateSchema>;
@@ -46,6 +45,7 @@ export const noticeCreateSchema = z.object({
   title: z.string().min(1, "제목을 입력해주세요.").max(200, "제목은 200자 이내로 입력해주세요."),
   content: z.string().min(1, "내용을 입력해주세요."),
   is_published: z.boolean(),
+  is_important: z.boolean(),
   notice_type: z.enum(["immediate", "scheduled"]),
   start_at: z.string().nullable(),
   end_at: z.string().nullable(),

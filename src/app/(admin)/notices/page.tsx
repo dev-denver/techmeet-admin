@@ -33,7 +33,7 @@ async function getNotices(params: { q?: string; published?: string; page?: strin
 
   let query = adminClient
     .from("notices")
-    .select("id, title, is_published, notice_type, start_at, end_at, created_at", { count: "exact" });
+    .select("id, title, is_published, is_important, notice_type, start_at, end_at, created_at", { count: "exact" });
 
   if (params.q) {
     query = query.ilike("title", `%${params.q}%`);
@@ -88,6 +88,7 @@ export default async function NoticesPage({ searchParams }: Props) {
             <TableHeader>
               <TableRow>
                 <TableHead>제목</TableHead>
+                <TableHead>중요</TableHead>
                 <TableHead>게시 상태</TableHead>
                 <TableHead>발송 유형</TableHead>
                 <TableHead>게시 기간</TableHead>
@@ -97,7 +98,7 @@ export default async function NoticesPage({ searchParams }: Props) {
             <TableBody>
               {notices.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5}>
+                  <TableCell colSpan={6}>
                     <EmptyState title="공지사항이 없습니다." />
                   </TableCell>
                 </TableRow>
@@ -111,6 +112,11 @@ export default async function NoticesPage({ searchParams }: Props) {
                       >
                         {notice.title}
                       </Link>
+                    </TableCell>
+                    <TableCell>
+                      {notice.is_important && (
+                        <Badge variant="destructive">중요</Badge>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Badge variant={notice.is_published ? "default" : "secondary"}>

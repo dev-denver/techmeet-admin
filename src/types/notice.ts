@@ -5,18 +5,19 @@ export interface Notice {
   title: string;
   content: string;
   is_published: boolean;
+  is_important: boolean;
   notice_type: NoticeType;
   start_at: string | null;
   end_at: string | null;
   created_at: string;
   updated_at: string;
-  created_by: string | null;
 }
 
 export interface NoticeListItem {
   id: string;
   title: string;
   is_published: boolean;
+  is_important: boolean;
   notice_type: NoticeType;
   start_at: string | null;
   end_at: string | null;
@@ -27,6 +28,7 @@ export interface NoticeFormValues {
   title: string;
   content: string;
   is_published: boolean;
+  is_important: boolean;
   notice_type: NoticeType;
   start_at: string | null;
   end_at: string | null;

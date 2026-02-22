@@ -33,11 +33,11 @@ async function getProjectApplications(projectId: string) {
   const { data } = await adminClient
     .from("applications")
     .select(`
-      id, status, expected_budget, created_at,
-      profile:profiles(id, name, email)
+      id, status, expected_rate, applied_at, created_at,
+      profile:profiles!freelancer_id(id, name, email)
     `)
     .eq("project_id", projectId)
-    .order("created_at", { ascending: false });
+    .order("applied_at", { ascending: false });
   return data ?? [];
 }
 
@@ -109,8 +109,8 @@ export default async function ProjectDetailPage({
                               {statusConfig?.label ?? app.status}
                             </Badge>
                           </TableCell>
-                          <TableCell>{formatBudget(app.expected_budget)}</TableCell>
-                          <TableCell>{formatDate(app.created_at)}</TableCell>
+                          <TableCell>{formatBudget(app.expected_rate)}</TableCell>
+                          <TableCell>{formatDate(app.applied_at ?? app.created_at)}</TableCell>
                         </TableRow>
                       );
                     })

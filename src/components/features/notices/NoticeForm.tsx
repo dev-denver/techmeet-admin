@@ -24,12 +24,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { Notice } from "@/types";
 
 const noticeSchema = z.object({
   title: z.string().min(1, "제목을 입력해주세요"),
   content: z.string().min(1, "내용을 입력해주세요"),
   is_published: z.boolean(),
+  is_important: z.boolean(),
   notice_type: z.enum(["immediate", "scheduled"]),
   start_at: z.string().nullable(),
   end_at: z.string().nullable(),
@@ -54,6 +56,7 @@ export function NoticeForm({ notice }: NoticeFormProps) {
       title: notice?.title ?? "",
       content: notice?.content ?? "",
       is_published: notice?.is_published ?? false,
+      is_important: notice?.is_important ?? false,
       notice_type: notice?.notice_type ?? "immediate",
       start_at: notice?.start_at ?? null,
       end_at: notice?.end_at ?? null,
@@ -174,6 +177,22 @@ export function NoticeForm({ notice }: NoticeFormProps) {
               )}
             />
           </div>
+
+          <FormField
+            control={form.control}
+            name="is_important"
+            render={({ field }) => (
+              <FormItem className="flex items-center gap-3 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <FormLabel className="cursor-pointer">중요 공지</FormLabel>
+              </FormItem>
+            )}
+          />
 
           {noticeType === "scheduled" && (
             <div className="grid grid-cols-2 gap-4">

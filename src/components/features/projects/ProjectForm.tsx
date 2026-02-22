@@ -30,12 +30,12 @@ import type { Project } from "@/types";
 const projectSchema = z.object({
   title: z.string().min(1, "제목을 입력해주세요"),
   description: z.string().min(1, "설명을 입력해주세요"),
-  status: z.enum(["draft", "open", "in_review", "in_progress", "completed", "cancelled"]),
+  status: z.enum(["recruiting", "in_progress", "completed", "cancelled"]),
   budget_min: z.union([z.number(), z.null()]),
   budget_max: z.union([z.number(), z.null()]),
-  start_date: z.string().nullable(),
-  end_date: z.string().nullable(),
-  skills: z.string(),
+  duration_start_date: z.string().nullable(),
+  duration_end_date: z.string().nullable(),
+  tech_stack: z.string(),
   category: z.string().nullable(),
 });
 
@@ -57,12 +57,12 @@ export function ProjectForm({ project }: ProjectFormProps) {
     defaultValues: {
       title: project?.title ?? "",
       description: project?.description ?? "",
-      status: project?.status ?? "draft",
+      status: project?.status ?? "recruiting",
       budget_min: project?.budget_min ?? null,
       budget_max: project?.budget_max ?? null,
-      start_date: project?.start_date ?? null,
-      end_date: project?.end_date ?? null,
-      skills: project?.skills?.join(", ") ?? "",
+      duration_start_date: project?.duration_start_date ?? null,
+      duration_end_date: project?.duration_end_date ?? null,
+      tech_stack: project?.tech_stack?.join(", ") ?? "",
       category: project?.category ?? null,
     },
   });
@@ -71,7 +71,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
     setError(null);
     const payload = {
       ...values,
-      skills: values.skills
+      tech_stack: values.tech_stack
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean),
@@ -235,7 +235,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
           <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
-              name="start_date"
+              name="duration_start_date"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>시작일</FormLabel>
@@ -255,7 +255,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
             />
             <FormField
               control={form.control}
-              name="end_date"
+              name="duration_end_date"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>종료일</FormLabel>
@@ -277,10 +277,10 @@ export function ProjectForm({ project }: ProjectFormProps) {
 
           <FormField
             control={form.control}
-            name="skills"
+            name="tech_stack"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>스킬 (쉼표로 구분)</FormLabel>
+                <FormLabel>기술 스택 (쉼표로 구분)</FormLabel>
                 <FormControl>
                   <Input placeholder="React, TypeScript, Node.js" {...field} />
                 </FormControl>

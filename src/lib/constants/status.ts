@@ -1,7 +1,5 @@
 export const PROJECT_STATUS = {
-  draft: { label: "임시저장", color: "secondary" },
-  open: { label: "모집중", color: "default" },
-  in_review: { label: "검토중", color: "outline" },
+  recruiting: { label: "모집중", color: "default" },
   in_progress: { label: "진행중", color: "default" },
   completed: { label: "완료", color: "secondary" },
   cancelled: { label: "취소", color: "destructive" },
@@ -11,7 +9,8 @@ export type ProjectStatus = keyof typeof PROJECT_STATUS;
 
 export const APPLICATION_STATUS = {
   pending: { label: "대기중", color: "outline" },
-  reviewed: { label: "검토됨", color: "secondary" },
+  reviewing: { label: "검토중", color: "secondary" },
+  interview: { label: "면접중", color: "outline" },
   accepted: { label: "수락됨", color: "default" },
   rejected: { label: "거절됨", color: "destructive" },
   withdrawn: { label: "취소됨", color: "secondary" },

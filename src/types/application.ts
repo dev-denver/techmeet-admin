@@ -3,12 +3,11 @@ import type { ApplicationStatus } from "@/lib/constants/status";
 export interface Application {
   id: string;
   project_id: string;
-  profile_id: string;
+  freelancer_id: string;
   status: ApplicationStatus;
   cover_letter: string | null;
-  expected_budget: number | null;
-  available_start_date: string | null;
-  admin_memo: string | null;
+  expected_rate: number | null;
+  applied_at: string;
   created_at: string;
   updated_at: string;
   project?: {
@@ -25,9 +24,10 @@ export interface Application {
 export interface ApplicationListItem {
   id: string;
   project_id: string;
-  profile_id: string;
+  freelancer_id: string;
   status: ApplicationStatus;
-  expected_budget: number | null;
+  expected_rate: number | null;
+  applied_at: string;
   created_at: string;
   project_title?: string;
   profile_name?: string;
@@ -36,5 +36,4 @@ export interface ApplicationListItem {
 
 export interface ApplicationStatusUpdateValues {
   status: ApplicationStatus;
-  admin_memo?: string;
 }

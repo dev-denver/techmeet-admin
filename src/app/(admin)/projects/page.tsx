@@ -24,7 +24,7 @@ async function getProjects(params: { q?: string; status?: string; page?: string 
 
   let query = adminClient
     .from("projects")
-    .select("id, title, status, budget_min, budget_max, start_date, category, created_at", { count: "exact" });
+    .select("id, title, status, budget_min, budget_max, duration_start_date, category, created_at", { count: "exact" });
 
   if (params.q) {
     query = query.or(`title.ilike.%${params.q}%,category.ilike.%${params.q}%`);
