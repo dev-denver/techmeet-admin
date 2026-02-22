@@ -1,12 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { verifyAdmin } from "@/lib/api/verify-admin";
+import { apiSuccess, apiDbError, parseBody } from "@/lib/api/response";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { alimtalkSendSchema } from "@/lib/api/schemas";
 
 export async function POST(request: NextRequest) {
   const { error } = await verifyAdmin();
   if (error) return error;
 
-  const body = await request.json();
+  const { data: body, error: parseError } = await parseBody(request, alimtalkSendSchema);
+  if (parseError) return parseError;
+
   const {
     template_code,
     template_name,
@@ -19,8 +23,6 @@ export async function POST(request: NextRequest) {
 
   const adminClient = createAdminClient();
 
-  // 카카오 알림톡 API 호출 (추후 구현)
-  // 현재는 로그만 저장
   if (target === "individual" && user_id) {
     const { error: dbError } = await adminClient.from("alimtalk_logs").insert({
       user_id,
@@ -29,14 +31,11 @@ export async function POST(request: NextRequest) {
       service_type,
       send_type,
       scheduled_at: scheduled_at ?? null,
-      is_success: null, // 실제 발송 후 업데이트
+      is_success: null,
     });
 
-    if (dbError) {
-      return NextResponse.json({ message: dbError.message }, { status: 500 });
-    }
+    if (dbError) return apiDbError(dbError.message);
   } else {
-    // 전체 발송 - 사용자 목록 조회
     const { data: profiles } = await adminClient
       .from("profiles")
       .select("id")
@@ -57,11 +56,9 @@ export async function POST(request: NextRequest) {
         .from("alimtalk_logs")
         .insert(logs);
 
-      if (dbError) {
-        return NextResponse.json({ message: dbError.message }, { status: 500 });
-      }
+      if (dbError) return apiDbError(dbError.message);
     }
   }
 
-  return NextResponse.json({ success: true });
+  return apiSuccess({ sent: true });
 }

@@ -1,9 +1,79 @@
 -- ============================================================
 -- techmeet-admin DB 마이그레이션
 -- Supabase Dashboard > SQL Editor에서 실행
+-- 신규 빈 프로젝트에서 한 번 실행하면 모든 테이블이 생성됨
 -- ============================================================
 
--- 1. profiles 테이블 누락 컬럼 추가
+
+-- 0. 기반 테이블 생성 (techmeet-client 앱과 공유)
+--    신규 Supabase에는 없으므로 IF NOT EXISTS로 먼저 생성
+-- ============================================================
+
+-- profiles
+create table if not exists public.profiles (
+  id             uuid default gen_random_uuid() primary key,
+  auth_user_id   uuid references auth.users on delete cascade not null unique,
+  name           text not null,
+  email          text not null,
+  phone          text,
+  bio            text,
+  skills         text[] not null default array[]::text[],
+  career_years   integer,
+  portfolio_url  text,
+  avatar_url     text,
+  created_at     timestamptz not null default now(),
+  updated_at     timestamptz not null default now()
+);
+alter table public.profiles enable row level security;
+
+-- projects
+create table if not exists public.projects (
+  id           uuid default gen_random_uuid() primary key,
+  title        text not null,
+  description  text not null default '',
+  status       text not null default 'draft'
+    check (status in ('draft','open','in_review','in_progress','completed','cancelled')),
+  budget_min   numeric,
+  budget_max   numeric,
+  start_date   date,
+  end_date     date,
+  skills       text[] not null default array[]::text[],
+  created_by   uuid references public.profiles(id) on delete set null,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+alter table public.projects enable row level security;
+
+-- notices
+create table if not exists public.notices (
+  id          uuid default gen_random_uuid() primary key,
+  title       text not null,
+  content     text not null default '',
+  created_by  uuid references public.profiles(id) on delete set null,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+alter table public.notices enable row level security;
+
+-- applications (admin_memo 포함)
+create table if not exists public.applications (
+  id                   uuid default gen_random_uuid() primary key,
+  project_id           uuid references public.projects(id) on delete cascade not null,
+  profile_id           uuid references public.profiles(id) on delete cascade not null,
+  status               text not null default 'pending'
+    check (status in ('pending','reviewed','accepted','rejected','withdrawn')),
+  cover_letter         text,
+  expected_budget      numeric,
+  available_start_date date,
+  admin_memo           text,
+  created_at           timestamptz not null default now(),
+  updated_at           timestamptz not null default now(),
+  unique (project_id, profile_id)
+);
+alter table public.applications enable row level security;
+
+
+-- 1. profiles 테이블 누락 컬럼 추가 (admin 전용)
 -- ============================================================
 alter table public.profiles
   add column if not exists notification_new_project        boolean not null default true,
@@ -15,13 +85,20 @@ alter table public.profiles
   add column if not exists referrer_id    uuid references public.profiles(id) on delete set null;
 
 
--- 2. notices 테이블 스케줄링 컬럼 추가
+-- 2. notices 테이블 누락 컬럼 추가
 -- ============================================================
 alter table public.notices
+  add column if not exists is_published boolean not null default false,
   add column if not exists start_at     timestamptz,
   add column if not exists end_at       timestamptz,
   add column if not exists notice_type  text not null default 'immediate'
     check (notice_type in ('immediate', 'scheduled'));
+
+
+-- 2-1. projects 테이블 누락 컬럼 추가
+-- ============================================================
+alter table public.projects
+  add column if not exists category text;
 
 
 -- 3. admin_users 테이블 (신규)
@@ -88,16 +165,38 @@ alter table public.profile_teams enable row level security;
 -- service_role 전용 (관리자 API Route에서 service_role 클라이언트 사용)
 
 
+-- 6. admin_audit_logs 테이블 (신규)
 -- ============================================================
--- 테스트 관리자 계정 삽입 예시 (실행 전 auth.users에 계정 생성 필요)
+create table if not exists public.admin_audit_logs (
+  id           uuid default gen_random_uuid() primary key,
+  admin_id     uuid references public.admin_users(id) on delete set null,
+  admin_name   text not null,
+  action       text not null,
+  resource     text not null,
+  resource_id  text,
+  details      jsonb,
+  created_at   timestamptz not null default now()
+);
+
+alter table public.admin_audit_logs enable row level security;
+-- service_role 전용
+
+create index if not exists idx_audit_logs_created_at on public.admin_audit_logs(created_at desc);
+create index if not exists idx_audit_logs_admin_id on public.admin_audit_logs(admin_id);
+create index if not exists idx_audit_logs_resource on public.admin_audit_logs(resource);
+
+
 -- ============================================================
--- 1. Supabase Auth > Add user로 관리자 이메일/비밀번호 계정 생성
--- 2. 생성된 user id 확인 후 아래 INSERT 실행
---
+-- 마스터 관리자 계정 등록
+-- ============================================================
+-- ※ 사전 준비: Supabase Dashboard > Authentication > Users 에서
+--   관리자 이메일/비밀번호로 Auth 계정을 먼저 생성하세요.
+--   생성 후 해당 유저의 UUID를 아래 auth_user_id에 입력하고 실행하세요.
+-- ============================================================
 -- insert into public.admin_users (auth_user_id, name, email, role)
 -- values (
---   'auth-user-uuid-here',
---   '관리자 이름',
---   'admin@example.com',
+--   'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',  -- Auth 유저 UUID 입력
+--   '마스터 관리자',
+--   'admin@techmeet.com',
 --   'superadmin'
--- );
+-- ) on conflict (auth_user_id) do nothing;

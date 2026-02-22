@@ -1,6 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { verifyAdmin } from "@/lib/api/verify-admin";
+import { apiSuccess, apiDbError, apiNotFound, parseBody } from "@/lib/api/response";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { projectUpdateSchema } from "@/lib/api/schemas";
+import { logAudit } from "@/lib/api/audit";
 
 export async function GET(
   _request: NextRequest,
@@ -17,22 +20,22 @@ export async function GET(
     .eq("id", id)
     .single();
 
-  if (dbError || !data) {
-    return NextResponse.json({ message: "프로젝트를 찾을 수 없습니다." }, { status: 404 });
-  }
+  if (dbError || !data) return apiNotFound("프로젝트");
 
-  return NextResponse.json(data);
+  return apiSuccess(data);
 }
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { error } = await verifyAdmin();
+  const { error, adminUser } = await verifyAdmin();
   if (error) return error;
 
+  const { data: body, error: parseError } = await parseBody(request, projectUpdateSchema);
+  if (parseError) return parseError;
+
   const { id } = await params;
-  const body = await request.json();
   const adminClient = createAdminClient();
 
   const { data, error: dbError } = await adminClient
@@ -42,18 +45,25 @@ export async function PUT(
     .select()
     .single();
 
-  if (dbError) {
-    return NextResponse.json({ message: dbError.message }, { status: 500 });
-  }
+  if (dbError) return apiDbError(dbError.message);
 
-  return NextResponse.json(data);
+  await logAudit({
+    adminId: adminUser!.id,
+    adminName: adminUser!.name,
+    action: "update",
+    resource: "projects",
+    resourceId: id,
+    details: body,
+  });
+
+  return apiSuccess(data);
 }
 
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { error } = await verifyAdmin();
+  const { error, adminUser } = await verifyAdmin();
   if (error) return error;
 
   const { id } = await params;
@@ -63,9 +73,15 @@ export async function DELETE(
     .delete()
     .eq("id", id);
 
-  if (dbError) {
-    return NextResponse.json({ message: dbError.message }, { status: 500 });
-  }
+  if (dbError) return apiDbError(dbError.message);
 
-  return NextResponse.json({ success: true });
+  await logAudit({
+    adminId: adminUser!.id,
+    adminName: adminUser!.name,
+    action: "delete",
+    resource: "projects",
+    resourceId: id,
+  });
+
+  return apiSuccess({ deleted: true });
 }
