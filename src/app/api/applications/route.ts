@@ -12,7 +12,7 @@ export async function GET() {
     .select(`
       *,
       project:projects(id, title),
-      profile:profiles(id, name, email)
+      profile:profiles!freelancer_id(id, name, email)
     `)
     .order("applied_at", { ascending: false });
 

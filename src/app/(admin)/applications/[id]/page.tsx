@@ -10,7 +10,7 @@ async function getApplication(id: string) {
     .select(`
       *,
       project:projects(id, title, status),
-      profile:profiles(id, name, email, phone)
+      profile:profiles!freelancer_id(id, name, email, phone)
     `)
     .eq("id", id)
     .single();
