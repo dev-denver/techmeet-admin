@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Trash2 } from "lucide-react";
-import { formatDate } from "@/lib/utils/format";
+import { formatDate, formatPhone } from "@/lib/utils/format";
 import type { AdminUser } from "@/types";
 
 interface AdminListProps {
@@ -28,8 +28,6 @@ export function AdminList({ admins, currentAdminId }: AdminListProps) {
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const superadminCount = admins.filter((a) => a.role === "superadmin").length;
 
   async function handleDelete() {
     if (!deleteTarget) return;
@@ -51,7 +49,7 @@ export function AdminList({ admins, currentAdminId }: AdminListProps) {
 
   function isDeleteDisabled(admin: AdminUser) {
     if (admin.id === currentAdminId) return true;
-    if (admin.role === "superadmin" && superadminCount <= 1) return true;
+    if (admin.role === "superadmin") return true;
     return false;
   }
 
@@ -64,6 +62,7 @@ export function AdminList({ admins, currentAdminId }: AdminListProps) {
               <TableHead className="w-16">ID</TableHead>
               <TableHead>이름</TableHead>
               <TableHead>이메일</TableHead>
+              <TableHead>휴대폰번호</TableHead>
               <TableHead>역할</TableHead>
               <TableHead>등록일</TableHead>
               <TableHead className="w-16"></TableHead>
@@ -72,7 +71,7 @@ export function AdminList({ admins, currentAdminId }: AdminListProps) {
           <TableBody>
             {admins.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6}>
+                <TableCell colSpan={7}>
                   <EmptyState title="관리자가 없습니다." />
                 </TableCell>
               </TableRow>
@@ -89,6 +88,7 @@ export function AdminList({ admins, currentAdminId }: AdminListProps) {
                     )}
                   </TableCell>
                   <TableCell>{admin.email}</TableCell>
+                  <TableCell>{formatPhone(admin.phone)}</TableCell>
                   <TableCell>
                     <Badge variant={admin.role === "superadmin" ? "default" : "secondary"}>
                       {admin.role === "superadmin" ? "슈퍼관리자" : "관리자"}

@@ -45,25 +45,25 @@ export default async function ApplicationsPage({ searchParams }: Props) {
     <>
       <Header title="지원서" />
       <main className="flex-1 overflow-y-auto p-6">
-        <Suspense>
-          <ListFilter
-            searchPlaceholder="검색..."
-            filters={[
-              {
-                key: "status",
-                label: "상태",
-                options: Object.entries(APPLICATION_STATUS).map(([k, v]) => ({
-                  value: k,
-                  label: v.label,
-                })),
-              },
-            ]}
-          />
-        </Suspense>
-
-        <div className="mt-4">
-          <ApplicationsTable applications={applications} />
+        <div className="flex items-center justify-between mb-4">
+          <Suspense>
+            <ListFilter
+              searchPlaceholder="검색..."
+              filters={[
+                {
+                  key: "status",
+                  label: "상태",
+                  options: Object.entries(APPLICATION_STATUS).map(([k, v]) => ({
+                    value: k,
+                    label: v.label,
+                  })),
+                },
+              ]}
+            />
+          </Suspense>
         </div>
+
+        <ApplicationsTable applications={applications} />
 
         <Suspense>
           <PaginationControls total={total} pageSize={PAGE_SIZE} />

@@ -23,12 +23,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const adminSchema = z.object({
-  name: z.string().min(1, "이름을 입력해주세요"),
-  email: z.string().email("올바른 이메일을 입력해주세요"),
-  password: z.string().min(8, "비밀번호는 8자 이상이어야 합니다"),
-  role: z.enum(["superadmin", "admin"]),
-});
+const adminSchema = z
+  .object({
+    name: z.string().min(1, "이름을 입력해주세요"),
+    email: z
+      .string()
+      .min(1, "이메일을 입력해주세요")
+      .email("올바른 이메일 형식이 아닙니다"),
+    password: z.string().min(8, "비밀번호는 8자 이상이어야 합니다"),
+    confirmPassword: z.string().min(1, "비밀번호 확인을 입력해주세요"),
+    phone: z
+      .string()
+      .min(1, "휴대폰번호를 입력해주세요")
+      .regex(/^01[016789]-\d{4}-\d{4}$/, "올바른 휴대폰번호를 입력해주세요 (예: 010-1234-5678)"),
+    role: z.enum(["superadmin", "admin"]),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "비밀번호가 일치하지 않습니다",
+    path: ["confirmPassword"],
+  });
 
 type AdminFormSchema = z.infer<typeof adminSchema>;
 
@@ -38,10 +51,13 @@ export function AdminForm() {
 
   const form = useForm<AdminFormSchema>({
     resolver: zodResolver(adminSchema),
+    mode: "onChange",
     defaultValues: {
       name: "",
       email: "",
       password: "",
+      confirmPassword: "",
+      phone: "",
       role: "admin",
     },
   });
@@ -49,10 +65,12 @@ export function AdminForm() {
   async function onSubmit(values: AdminFormSchema) {
     setError(null);
 
+    const { confirmPassword: _, ...apiData } = values;
+
     const res = await fetch("/api/admins", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
+      body: JSON.stringify(apiData),
     });
 
     if (!res.ok) {
@@ -103,7 +121,60 @@ export function AdminForm() {
             <FormItem>
               <FormLabel>비밀번호</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="8자 이상" {...field} />
+                <Input
+                  type="password"
+                  placeholder="8자 이상"
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    if (form.getValues("confirmPassword")) {
+                      form.trigger("confirmPassword");
+                    }
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="confirmPassword"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>비밀번호 확인</FormLabel>
+              <FormControl>
+                <Input type="password" placeholder="비밀번호 재입력" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="phone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>휴대폰 번호</FormLabel>
+              <FormControl>
+                <Input
+                  type="tel"
+                  placeholder="010-1234-1234"
+                  maxLength={13}
+                  {...field}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "").slice(0, 11);
+                    const formatted =
+                      digits.length <= 3
+                        ? digits
+                        : digits.length <= 7
+                          ? `${digits.slice(0, 3)}-${digits.slice(3)}`
+                          : `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+                    field.onChange(formatted);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -71,30 +71,32 @@ export default async function AuditLogsPage({ searchParams }: Props) {
     <>
       <Header title="활동 로그" />
       <main className="flex-1 overflow-y-auto p-6">
-        <Suspense>
-          <ListFilter
-            filters={[
-              {
-                key: "action",
-                label: "액션",
-                options: Object.entries(ACTION_LABELS).map(([k, v]) => ({
-                  value: k,
-                  label: v.label,
-                })),
-              },
-              {
-                key: "resource",
-                label: "리소스",
-                options: Object.entries(RESOURCE_LABELS).map(([k, v]) => ({
-                  value: k,
-                  label: v,
-                })),
-              },
-            ]}
-          />
-        </Suspense>
+        <div className="flex items-center justify-between mb-4">
+          <Suspense>
+            <ListFilter
+              filters={[
+                {
+                  key: "action",
+                  label: "액션",
+                  options: Object.entries(ACTION_LABELS).map(([k, v]) => ({
+                    value: k,
+                    label: v.label,
+                  })),
+                },
+                {
+                  key: "resource",
+                  label: "리소스",
+                  options: Object.entries(RESOURCE_LABELS).map(([k, v]) => ({
+                    value: k,
+                    label: v,
+                  })),
+                },
+              ]}
+            />
+          </Suspense>
+        </div>
 
-        <div className="rounded-md border mt-4">
+        <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>

@@ -10,6 +10,7 @@ export interface AdminUser {
   auth_user_id: string;
   name: string;
   email: string;
+  phone: string | null;
   role: "superadmin" | "admin";
   created_at: string;
 }

@@ -48,8 +48,11 @@ export function NoticeForm({ notice }: NoticeFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [restoreOpen, setRestoreOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [restoring, setRestoring] = useState(false);
   const isEdit = !!notice;
+  const isDeleted = !!notice?.deleted_at;
 
   const form = useForm<NoticeFormSchema>({
     resolver: zodResolver(noticeSchema),
@@ -90,6 +93,17 @@ export function NoticeForm({ notice }: NoticeFormProps) {
     setDeleting(true);
     const res = await fetch(`/api/notices/${notice.id}`, { method: "DELETE" });
     setDeleting(false);
+    if (res.ok) {
+      router.push("/notices");
+      router.refresh();
+    }
+  }
+
+  async function handleRestore() {
+    if (!notice) return;
+    setRestoring(true);
+    const res = await fetch(`/api/notices/${notice.id}/restore`, { method: "PATCH" });
+    setRestoring(false);
     if (res.ok) {
       router.push("/notices");
       router.refresh();
@@ -271,7 +285,7 @@ export function NoticeForm({ notice }: NoticeFormProps) {
           {error && <p className="text-sm text-destructive">{error}</p>}
 
           <div className="flex items-center gap-3">
-            {isEdit && (
+            {isEdit && !isDeleted && (
               <Button
                 type="button"
                 variant="destructive"
@@ -280,7 +294,16 @@ export function NoticeForm({ notice }: NoticeFormProps) {
                 삭제
               </Button>
             )}
-            <Button type="submit" disabled={form.formState.isSubmitting}>
+            {isEdit && isDeleted && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setRestoreOpen(true)}
+              >
+                복구
+              </Button>
+            )}
+            <Button type="submit" disabled={form.formState.isSubmitting || isDeleted}>
               {form.formState.isSubmitting ? "저장 중..." : isEdit ? "수정" : "등록"}
             </Button>
             <Button
@@ -299,11 +322,22 @@ export function NoticeForm({ notice }: NoticeFormProps) {
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         title="공지사항 삭제"
-        description="이 공지사항을 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+        description="이 공지사항을 삭제하시겠습니까? 삭제된 공지사항은 목록에서 숨겨지며, '삭제된 항목' 필터에서 복구할 수 있습니다."
         confirmLabel="삭제"
         variant="destructive"
         onConfirm={handleDelete}
         loading={deleting}
+      />
+
+      <ConfirmDialog
+        open={restoreOpen}
+        onOpenChange={setRestoreOpen}
+        title="공지사항 복구"
+        description="이 공지사항을 복구하시겠습니까? 복구 후 목록에 다시 표시됩니다."
+        confirmLabel="복구"
+        variant="default"
+        onConfirm={handleRestore}
+        loading={restoring}
       />
     </>
   );

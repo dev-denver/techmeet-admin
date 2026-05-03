@@ -30,3 +30,11 @@ export function formatBudget(amount: number | null | undefined): string {
 export function formatCount(count: number): string {
   return new Intl.NumberFormat("ko-KR").format(count);
 }
+
+export function formatPhone(phone: string | null | undefined): string {
+  if (!phone) return "-";
+  const d = phone.replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 3) return d;
+  if (d.length <= 7) return `${d.slice(0, 3)}-${d.slice(3)}`;
+  return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
+}

@@ -12,7 +12,7 @@ async function getAdmins(): Promise<AdminUser[]> {
   const adminClient = createAdminClient();
   const { data } = await adminClient
     .from("admin_users")
-    .select("id, seq_id, auth_user_id, name, email, role, created_at")
+    .select("id, seq_id, auth_user_id, name, email, phone, role, created_at")
     .order("created_at", { ascending: true });
   return (data ?? []) as AdminUser[];
 }
@@ -41,9 +41,9 @@ export default async function AdminsPage() {
     <>
       <Header title="관리자 관리" />
       <main className="flex-1 overflow-y-auto p-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4">
           <p className="text-sm text-muted-foreground">총 {admins.length}명</p>
-          <Button asChild size="sm">
+          <Button asChild size="sm" className="ml-3 shrink-0">
             <Link href="/admins/new">
               <Plus className="h-4 w-4 mr-2" />
               관리자 추가

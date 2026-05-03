@@ -36,14 +36,7 @@ export async function DELETE(
   }
 
   if (target.role === "superadmin") {
-    const { count } = await adminClient!
-      .from("admin_users")
-      .select("id", { count: "exact", head: true })
-      .eq("role", "superadmin");
-
-    if ((count ?? 0) <= 1) {
-      return apiError("마지막 슈퍼관리자 계정은 삭제할 수 없습니다.", 400);
-    }
+    return apiError("슈퍼관리자 계정은 삭제할 수 없습니다.", 400);
   }
 
   const { error: deleteError } = await adminClient!

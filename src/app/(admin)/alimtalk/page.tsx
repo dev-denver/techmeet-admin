@@ -56,7 +56,7 @@ export default async function AlimtalkPage({ searchParams }: Props) {
         <AlimtalkNav />
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm text-muted-foreground">총 {total}건</p>
-          <Button asChild size="sm">
+          <Button asChild size="sm" className="ml-3 shrink-0">
             <Link href="/alimtalk/send">
               <Send className="h-4 w-4 mr-2" />
               알림톡 발송

@@ -10,6 +10,7 @@ export interface Notice {
   notice_type: NoticeType;
   start_at: string | null;
   end_at: string | null;
+  deleted_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -23,6 +24,7 @@ export interface NoticeListItem {
   notice_type: NoticeType;
   start_at: string | null;
   end_at: string | null;
+  deleted_at: string | null;
   created_at: string;
 }
 

@@ -70,7 +70,7 @@ export async function DELETE(
   const adminClient = createAdminClient();
   const { error: dbError } = await adminClient
     .from("notices")
-    .delete()
+    .update({ deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
     .eq("id", id);
 
   if (dbError) return apiDbError(dbError.message);

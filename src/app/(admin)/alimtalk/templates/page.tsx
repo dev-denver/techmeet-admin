@@ -91,8 +91,6 @@ export default async function AlimtalkTemplatesPage({ searchParams }: Props) {
           </Button>
         </div>
 
-        <p className="text-sm text-muted-foreground mb-2">총 {total}건</p>
-
         <div className="rounded-md border">
           <Table>
             <TableHeader>

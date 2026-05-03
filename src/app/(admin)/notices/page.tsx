@@ -22,18 +22,25 @@ import type { NoticeListItem } from "@/types";
 const PAGE_SIZE = 20;
 
 interface Props {
-  searchParams: Promise<{ q?: string; published?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; published?: string; page?: string; deleted?: string }>;
 }
 
-async function getNotices(params: { q?: string; published?: string; page?: string }) {
+async function getNotices(params: { q?: string; published?: string; page?: string; deleted?: string }) {
   const adminClient = createAdminClient();
   const page = Number(params.page ?? "1");
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
+  const showDeleted = params.deleted === "true";
 
   let query = adminClient
     .from("notices")
-    .select("id, seq_id, title, is_published, is_important, notice_type, start_at, end_at, created_at", { count: "exact" });
+    .select("id, seq_id, title, is_published, is_important, notice_type, start_at, end_at, deleted_at, created_at", { count: "exact" });
+
+  if (showDeleted) {
+    query = query.not("deleted_at", "is", null);
+  } else {
+    query = query.is("deleted_at", null);
+  }
 
   if (params.q) {
     query = query.ilike("title", `%${params.q}%`);
@@ -48,12 +55,12 @@ async function getNotices(params: { q?: string; published?: string; page?: strin
     .order("created_at", { ascending: false })
     .range(from, to);
 
-  return { notices: (data ?? []) as NoticeListItem[], total: count ?? 0 };
+  return { notices: (data ?? []) as NoticeListItem[], total: count ?? 0, showDeleted };
 }
 
 export default async function NoticesPage({ searchParams }: Props) {
   const params = await searchParams;
-  const { notices, total } = await getNotices(params);
+  const { notices, total, showDeleted } = await getNotices(params);
 
   return (
     <>
@@ -72,6 +79,11 @@ export default async function NoticesPage({ searchParams }: Props) {
                     { value: "false", label: "미게시" },
                   ],
                 },
+                {
+                  key: "deleted",
+                  label: "삭제 여부",
+                  options: [{ value: "true", label: "삭제된 항목" }],
+                },
               ]}
             />
           </Suspense>
@@ -82,6 +94,12 @@ export default async function NoticesPage({ searchParams }: Props) {
             </Link>
           </Button>
         </div>
+
+        {showDeleted && (
+          <p className="text-sm text-muted-foreground mb-3">
+            삭제된 공지사항 목록입니다. 항목을 클릭하면 복구할 수 있습니다.
+          </p>
+        )}
 
         <div className="rounded-md border">
           <Table>

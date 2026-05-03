@@ -10,7 +10,7 @@ export async function GET() {
 
   const { data, error: dbError } = await adminClient!
     .from("admin_users")
-    .select("id, auth_user_id, name, email, role, created_at")
+    .select("id, auth_user_id, name, email, phone, role, created_at")
     .order("created_at", { ascending: true });
 
   if (dbError) return apiDbError("관리자 목록 조회 실패");
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
   const { data: body, error: parseError } = await parseBody(request, adminCreateSchema);
   if (parseError) return parseError;
 
-  const { name, email, password, role } = body;
+  const { name, email, password, role, phone } = body;
 
   const { data: authData, error: authError } = await adminClient!.auth.admin.createUser({
     email,
@@ -34,7 +34,13 @@ export async function POST(request: NextRequest) {
   });
 
   if (authError || !authData.user) {
-    const message = authError?.message ?? "Auth 계정 생성 실패";
+    const raw = authError?.message ?? "";
+    const message =
+      raw.toLowerCase().includes("already been registered") ||
+      raw.toLowerCase().includes("already registered") ||
+      raw.toLowerCase().includes("email already")
+        ? "이미 등록된 이메일 주소입니다."
+        : raw || "계정 생성에 실패했습니다.";
     return apiError(message, 400);
   }
 
@@ -43,6 +49,7 @@ export async function POST(request: NextRequest) {
     name,
     email,
     role,
+    phone: phone ?? null,
   });
 
   if (insertError) {

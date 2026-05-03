@@ -80,6 +80,7 @@ export const adminCreateSchema = z.object({
   email: z.string().email("올바른 이메일을 입력해주세요."),
   password: z.string().min(8, "비밀번호는 8자 이상이어야 합니다."),
   role: z.enum(["superadmin", "admin"]),
+  phone: z.string().nullable().optional(),
 });
 
 export type AdminCreateInput = z.infer<typeof adminCreateSchema>;
