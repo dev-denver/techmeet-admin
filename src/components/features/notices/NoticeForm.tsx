@@ -23,8 +23,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Checkbox } from "@/components/ui/checkbox";
 import type { Notice } from "@/types";
 
 const noticeSchema = z.object({
@@ -101,159 +102,195 @@ export function NoticeForm({ notice }: NoticeFormProps) {
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>제목</FormLabel>
-                <FormControl>
-                  <Input placeholder="공지사항 제목" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="content"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>내용</FormLabel>
-                <FormControl>
-                  <Textarea placeholder="공지사항 내용" rows={8} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="is_published"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>게시 상태</FormLabel>
-                  <Select
-                    onValueChange={(v) => field.onChange(v === "true")}
-                    defaultValue={String(field.value)}
-                  >
+          {/* 기본 정보 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">기본 정보</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>제목</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
+                      <Input placeholder="공지사항 제목" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="true">게시</SelectItem>
-                      <SelectItem value="false">미게시</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="notice_type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>발송 유형</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>내용</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
+                      <Textarea
+                        placeholder="공지사항 내용을 입력하세요"
+                        rows={18}
+                        className="min-h-[280px] resize-y font-mono text-sm leading-relaxed"
+                        {...field}
+                      />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="immediate">즉시</SelectItem>
-                      <SelectItem value="scheduled">예약</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
 
-          <FormField
-            control={form.control}
-            name="is_important"
-            render={({ field }) => (
-              <FormItem className="flex items-center gap-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel className="cursor-pointer">중요 공지</FormLabel>
-              </FormItem>
-            )}
-          />
+          {/* 게시 설정 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">게시 설정</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="is_published"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>게시 상태</FormLabel>
+                      <Select
+                        onValueChange={(v) => field.onChange(v === "true")}
+                        defaultValue={String(field.value)}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="true">게시</SelectItem>
+                          <SelectItem value="false">미게시</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
+                <FormField
+                  control={form.control}
+                  name="notice_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>발송 유형</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="immediate">즉시</SelectItem>
+                          <SelectItem value="scheduled">예약</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="is_important"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between rounded-lg border p-3">
+                    <div>
+                      <FormLabel className="text-sm font-medium cursor-pointer">중요 공지</FormLabel>
+                      <p className="text-xs text-muted-foreground mt-0.5">상단에 고정 표시됩니다</p>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* 예약 설정 */}
           {noticeType === "scheduled" && (
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="start_at"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>게시 시작</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="datetime-local"
-                        {...field}
-                        value={field.value ?? ""}
-                        onChange={(e) => field.onChange(e.target.value || null)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="end_at"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>게시 종료</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="datetime-local"
-                        {...field}
-                        value={field.value ?? ""}
-                        onChange={(e) => field.onChange(e.target.value || null)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">예약 설정</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="start_at"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>게시 시작</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="datetime-local"
+                            {...field}
+                            value={field.value ?? ""}
+                            onChange={(e) => field.onChange(e.target.value || null)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="end_at"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>게시 종료</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="datetime-local"
+                            {...field}
+                            value={field.value ?? ""}
+                            onChange={(e) => field.onChange(e.target.value || null)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 
-          <div className="flex gap-3">
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? "저장 중..." : isEdit ? "수정" : "등록"}
-            </Button>
-            <Button type="button" variant="outline" onClick={() => router.back()}>
-              취소
-            </Button>
+          <div className="flex items-center gap-3">
             {isEdit && (
               <Button
                 type="button"
                 variant="destructive"
-                className="ml-auto"
                 onClick={() => setDeleteOpen(true)}
               >
                 삭제
               </Button>
             )}
+            <Button type="submit" disabled={form.formState.isSubmitting}>
+              {form.formState.isSubmitting ? "저장 중..." : isEdit ? "수정" : "등록"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="ml-auto"
+              onClick={() => router.back()}
+            >
+              취소
+            </Button>
           </div>
         </form>
       </Form>
