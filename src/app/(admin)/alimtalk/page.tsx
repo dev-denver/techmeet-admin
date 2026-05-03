@@ -34,7 +34,7 @@ async function getAlimtalkLogs(params: { page?: string }) {
   const { data, count } = await adminClient
     .from("alimtalk_logs")
     .select(`
-      id, user_id, template_code, template_name, service_type,
+      id, seq_id, user_id, template_code, template_name, service_type,
       send_type, is_success, sent_at, scheduled_at, error_message, created_at,
       profile:profiles(id, name, email)
     `, { count: "exact" })
@@ -68,6 +68,7 @@ export default async function AlimtalkPage({ searchParams }: Props) {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-16">ID</TableHead>
                 <TableHead>템플릿</TableHead>
                 <TableHead>수신자</TableHead>
                 <TableHead>서비스 유형</TableHead>
@@ -79,7 +80,7 @@ export default async function AlimtalkPage({ searchParams }: Props) {
             <TableBody>
               {logs.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6}>
+                  <TableCell colSpan={7}>
                     <EmptyState title="발송 내역이 없습니다." />
                   </TableCell>
                 </TableRow>
@@ -88,6 +89,9 @@ export default async function AlimtalkPage({ searchParams }: Props) {
                   const profile = Array.isArray(log.profile) ? log.profile[0] : log.profile;
                   return (
                     <TableRow key={log.id}>
+                      <TableCell>
+                        <span className="font-mono text-xs text-muted-foreground">#{log.seq_id}</span>
+                      </TableCell>
                       <TableCell>
                         <p className="font-medium">{log.template_name}</p>
                         <p className="text-xs text-muted-foreground">{log.template_code}</p>

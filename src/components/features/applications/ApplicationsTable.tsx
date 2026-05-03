@@ -19,6 +19,7 @@ import { formatDate, formatBudget } from "@/lib/utils/format";
 
 interface ApplicationItem {
   id: string;
+  seq_id: number;
   status: string;
   expected_rate: number | null;
   applied_at: string;
@@ -65,6 +66,7 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
                   onCheckedChange={(c) => toggleAll(!!c)}
                 />
               </TableHead>
+              <TableHead className="w-16">ID</TableHead>
               <TableHead>프로젝트</TableHead>
               <TableHead>지원자</TableHead>
               <TableHead>상태</TableHead>
@@ -75,7 +77,7 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
           <TableBody>
             {applications.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6}>
+                <TableCell colSpan={7}>
                   <EmptyState title="지원서가 없습니다." />
                 </TableCell>
               </TableRow>
@@ -91,6 +93,9 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
                         checked={selected.includes(app.id)}
                         onCheckedChange={(c) => toggleOne(app.id, !!c)}
                       />
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-mono text-xs text-muted-foreground">#{app.seq_id}</span>
                     </TableCell>
                     <TableCell>
                       <Link

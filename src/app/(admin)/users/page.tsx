@@ -33,7 +33,7 @@ async function getUsers(params: { q?: string; status?: string; page?: string }) 
 
   let query = adminClient
     .from("profiles")
-    .select("id, name, email, phone, tech_stack, experience_years, account_status, created_at", { count: "exact" });
+    .select("id, seq_id, name, email, phone, tech_stack, experience_years, account_status, created_at", { count: "exact" });
 
   if (params.q) {
     query = query.or(`name.ilike.%${params.q}%,email.ilike.%${params.q}%,phone.ilike.%${params.q}%`);
@@ -83,6 +83,7 @@ export default async function UsersPage({ searchParams }: Props) {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-16">ID</TableHead>
                 <TableHead>이름</TableHead>
                 <TableHead>이메일</TableHead>
                 <TableHead>연락처</TableHead>
@@ -95,7 +96,7 @@ export default async function UsersPage({ searchParams }: Props) {
             <TableBody>
               {users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7}>
+                  <TableCell colSpan={8}>
                     <EmptyState title="등록된 개발자가 없습니다." />
                   </TableCell>
                 </TableRow>
@@ -104,6 +105,9 @@ export default async function UsersPage({ searchParams }: Props) {
                   const statusConfig = ACCOUNT_STATUS[user.account_status];
                   return (
                     <TableRow key={user.id}>
+                      <TableCell>
+                        <span className="font-mono text-xs text-muted-foreground">#{user.seq_id}</span>
+                      </TableCell>
                       <TableCell>
                         <Link
                           href={`/users/${user.id}`}

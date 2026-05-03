@@ -13,18 +13,25 @@ import type { ProjectListItem } from "@/types";
 const PAGE_SIZE = 20;
 
 interface Props {
-  searchParams: Promise<{ q?: string; status?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; page?: string; deleted?: string }>;
 }
 
-async function getProjects(params: { q?: string; status?: string; page?: string }) {
+async function getProjects(params: { q?: string; status?: string; page?: string; deleted?: string }) {
   const adminClient = createAdminClient();
   const page = Number(params.page ?? "1");
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
+  const showDeleted = params.deleted === "true";
 
   let query = adminClient
     .from("projects")
-    .select("id, title, status, duration_start_date, category, created_at", { count: "exact" });
+    .select("id, seq_id, title, description, status, duration_start_date, category, is_visible, deleted_at, created_at", { count: "exact" });
+
+  if (showDeleted) {
+    query = query.not("deleted_at", "is", null);
+  } else {
+    query = query.is("deleted_at", null);
+  }
 
   if (params.q) {
     query = query.or(`title.ilike.%${params.q}%,category.ilike.%${params.q}%`);
@@ -37,12 +44,12 @@ async function getProjects(params: { q?: string; status?: string; page?: string 
     .order("created_at", { ascending: false })
     .range(from, to);
 
-  return { projects: (data ?? []) as ProjectListItem[], total: count ?? 0 };
+  return { projects: (data ?? []) as ProjectListItem[], total: count ?? 0, showDeleted };
 }
 
 export default async function ProjectsPage({ searchParams }: Props) {
   const params = await searchParams;
-  const { projects, total } = await getProjects(params);
+  const { projects, total, showDeleted } = await getProjects(params);
 
   return (
     <>
@@ -61,6 +68,11 @@ export default async function ProjectsPage({ searchParams }: Props) {
                     label: v.label,
                   })),
                 },
+                {
+                  key: "deleted",
+                  label: "삭제 여부",
+                  options: [{ value: "true", label: "삭제된 항목" }],
+                },
               ]}
             />
           </Suspense>
@@ -72,7 +84,13 @@ export default async function ProjectsPage({ searchParams }: Props) {
           </Button>
         </div>
 
-        <ProjectsTable projects={projects} />
+        {showDeleted && (
+          <p className="text-sm text-muted-foreground mb-3">
+            삭제된 프로젝트 목록입니다. 복구 버튼을 눌러 목록에 다시 표시할 수 있습니다.
+          </p>
+        )}
+
+        <ProjectsTable projects={projects} showDeleted={showDeleted} />
 
         <Suspense>
           <PaginationControls total={total} pageSize={PAGE_SIZE} />

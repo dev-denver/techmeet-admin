@@ -35,7 +35,7 @@ async function getTemplates(params: { q?: string; service_type?: string; active?
 
   let query = adminClient
     .from("alimtalk_templates")
-    .select("id, code, name, service_type, is_active, variables, created_at", { count: "exact" });
+    .select("id, seq_id, code, name, service_type, is_active, variables, created_at", { count: "exact" });
 
   if (params.q) query = query.or(`code.ilike.%${params.q}%,name.ilike.%${params.q}%`);
   if (params.service_type) query = query.eq("service_type", params.service_type);
@@ -97,6 +97,7 @@ export default async function AlimtalkTemplatesPage({ searchParams }: Props) {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-16">ID</TableHead>
                 <TableHead>코드</TableHead>
                 <TableHead>이름</TableHead>
                 <TableHead>유형</TableHead>
@@ -108,13 +109,16 @@ export default async function AlimtalkTemplatesPage({ searchParams }: Props) {
             <TableBody>
               {templates.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6}>
+                  <TableCell colSpan={7}>
                     <EmptyState title="등록된 템플릿이 없습니다." />
                   </TableCell>
                 </TableRow>
               ) : (
                 templates.map((t) => (
                   <TableRow key={t.id}>
+                    <TableCell>
+                      <span className="font-mono text-xs text-muted-foreground">#{t.seq_id}</span>
+                    </TableCell>
                     <TableCell>
                       <Link href={`/alimtalk/templates/${t.id}`} className="font-mono text-sm hover:underline">
                         {t.code}

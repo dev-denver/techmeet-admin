@@ -2,6 +2,7 @@ import type { SendType } from "@/lib/constants/status";
 
 export interface AlimtalkTemplate {
   id: string;
+  seq_id: number;
   code: string;
   name: string;
   body: string;
@@ -14,6 +15,7 @@ export interface AlimtalkTemplate {
 
 export interface AlimtalkTemplateListItem {
   id: string;
+  seq_id: number;
   code: string;
   name: string;
   service_type: "project" | "notice" | "individual" | "all";
@@ -24,6 +26,7 @@ export interface AlimtalkTemplateListItem {
 
 export interface AlimtalkLog {
   id: string;
+  seq_id: number;
   user_id: string | null;
   template_code: string;
   template_name: string;

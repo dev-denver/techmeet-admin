@@ -61,6 +61,7 @@ export function AdminList({ admins, currentAdminId }: AdminListProps) {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-16">ID</TableHead>
               <TableHead>이름</TableHead>
               <TableHead>이메일</TableHead>
               <TableHead>역할</TableHead>
@@ -71,13 +72,16 @@ export function AdminList({ admins, currentAdminId }: AdminListProps) {
           <TableBody>
             {admins.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5}>
+                <TableCell colSpan={6}>
                   <EmptyState title="관리자가 없습니다." />
                 </TableCell>
               </TableRow>
             ) : (
               admins.map((admin) => (
                 <TableRow key={admin.id}>
+                  <TableCell>
+                    <span className="font-mono text-xs text-muted-foreground">#{admin.seq_id}</span>
+                  </TableCell>
                   <TableCell className="font-medium">
                     {admin.name}
                     {admin.id === currentAdminId && (

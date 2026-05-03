@@ -3,10 +3,10 @@ export type * from "./user";
 export type * from "./application";
 export type * from "./notice";
 export type * from "./alimtalk";
-export type * from "./team";
 
 export interface AdminUser {
   id: string;
+  seq_id: number;
   auth_user_id: string;
   name: string;
   email: string;

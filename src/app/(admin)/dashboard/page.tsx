@@ -135,7 +135,6 @@ const RESOURCE_LABELS: Record<string, string> = {
   projects: "프로젝트",
   applications: "지원서",
   notices: "공지사항",
-  teams: "팀",
   admins: "관리자",
 };
 

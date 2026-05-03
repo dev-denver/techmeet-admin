@@ -33,7 +33,7 @@ async function getNotices(params: { q?: string; published?: string; page?: strin
 
   let query = adminClient
     .from("notices")
-    .select("id, title, is_published, is_important, notice_type, start_at, end_at, created_at", { count: "exact" });
+    .select("id, seq_id, title, is_published, is_important, notice_type, start_at, end_at, created_at", { count: "exact" });
 
   if (params.q) {
     query = query.ilike("title", `%${params.q}%`);
@@ -87,6 +87,7 @@ export default async function NoticesPage({ searchParams }: Props) {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-16">ID</TableHead>
                 <TableHead>제목</TableHead>
                 <TableHead>중요</TableHead>
                 <TableHead>게시 상태</TableHead>
@@ -98,13 +99,16 @@ export default async function NoticesPage({ searchParams }: Props) {
             <TableBody>
               {notices.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6}>
+                  <TableCell colSpan={7}>
                     <EmptyState title="공지사항이 없습니다." />
                   </TableCell>
                 </TableRow>
               ) : (
                 notices.map((notice) => (
                   <TableRow key={notice.id}>
+                    <TableCell>
+                      <span className="font-mono text-xs text-muted-foreground">#{notice.seq_id}</span>
+                    </TableCell>
                     <TableCell>
                       <Link
                         href={`/notices/${notice.id}`}

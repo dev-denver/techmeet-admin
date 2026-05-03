@@ -2,6 +2,7 @@ import type { AccountStatus } from "@/lib/constants/status";
 
 export interface Profile {
   id: string;
+  seq_id: number;
   name: string;
   email: string;
   phone: string | null;
@@ -25,6 +26,7 @@ export interface Profile {
 
 export interface ProfileListItem {
   id: string;
+  seq_id: number;
   name: string;
   email: string;
   phone: string | null;

@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 interface AuditLogEntry {
   adminId: string;
   adminName: string;
-  action: "create" | "update" | "delete" | "bulk_update" | "bulk_delete";
+  action: "create" | "update" | "delete" | "restore" | "bulk_update" | "bulk_delete" | "bulk_restore";
   resource: string;
   resourceId?: string;
   details?: Record<string, unknown>;

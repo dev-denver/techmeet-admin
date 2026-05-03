@@ -39,13 +39,6 @@ export const SEND_TYPE = {
 
 export type SendType = keyof typeof SEND_TYPE;
 
-export const TEAM_ROLE = {
-  leader: { label: "리더", color: "default" },
-  member: { label: "멤버", color: "secondary" },
-} as const;
-
-export type TeamRole = keyof typeof TEAM_ROLE;
-
 export const ADMIN_ROLE = {
   superadmin: { label: "슈퍼관리자", color: "default" },
   admin: { label: "관리자", color: "secondary" },

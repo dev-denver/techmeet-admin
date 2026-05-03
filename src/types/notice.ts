@@ -2,6 +2,7 @@ import type { NoticeType } from "@/lib/constants/status";
 
 export interface Notice {
   id: string;
+  seq_id: number;
   title: string;
   content: string;
   is_published: boolean;
@@ -15,6 +16,7 @@ export interface Notice {
 
 export interface NoticeListItem {
   id: string;
+  seq_id: number;
   title: string;
   is_published: boolean;
   is_important: boolean;

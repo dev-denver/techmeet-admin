@@ -21,13 +21,34 @@ export const projectCreateSchema = z.object({
   title: z.string().min(1, "제목을 입력해주세요.").max(200, "제목은 200자 이내로 입력해주세요."),
   description: z.string().min(1, "설명을 입력해주세요."),
   status: z.enum(["recruiting", "in_progress", "completed", "cancelled"]),
-  duration_start_date: z.string().nullable(),
-  duration_end_date: z.string().nullable(),
+  duration_start_date: z.string().min(1, "시작일을 입력해주세요."),
+  duration_end_date: z.string().min(1, "종료일을 입력해주세요."),
   tech_stack: z.array(z.string()),
   category: z.string().nullable(),
-});
+  is_visible: z.boolean().default(true),
+}).refine(
+  (d) => d.duration_end_date >= d.duration_start_date,
+  { message: "종료일은 시작일 이후여야 합니다.", path: ["duration_end_date"] }
+);
 
-export const projectUpdateSchema = projectCreateSchema.partial();
+export const projectUpdateSchema = z.object({
+  title: z.string().min(1, "제목을 입력해주세요.").max(200, "제목은 200자 이내로 입력해주세요.").optional(),
+  description: z.string().min(1, "설명을 입력해주세요.").optional(),
+  status: z.enum(["recruiting", "in_progress", "completed", "cancelled"]).optional(),
+  duration_start_date: z.string().min(1).optional(),
+  duration_end_date: z.string().min(1).optional(),
+  tech_stack: z.array(z.string()).optional(),
+  category: z.string().nullable().optional(),
+  is_visible: z.boolean().optional(),
+}).refine(
+  (d) => {
+    if (d.duration_start_date && d.duration_end_date) {
+      return d.duration_end_date >= d.duration_start_date;
+    }
+    return true;
+  },
+  { message: "종료일은 시작일 이후여야 합니다.", path: ["duration_end_date"] }
+);
 
 export type ProjectCreateInput = z.infer<typeof projectCreateSchema>;
 
@@ -52,28 +73,6 @@ export const noticeCreateSchema = z.object({
 export const noticeUpdateSchema = noticeCreateSchema.partial();
 
 export type NoticeCreateInput = z.infer<typeof noticeCreateSchema>;
-
-// ── Teams ──
-export const teamCreateSchema = z.object({
-  name: z.string().min(1, "팀 이름을 입력해주세요.").max(100, "팀 이름은 100자 이내로 입력해주세요."),
-  description: z.string().optional().default(""),
-});
-
-export const teamUpdateSchema = teamCreateSchema.partial();
-
-export type TeamCreateInput = z.infer<typeof teamCreateSchema>;
-
-// ── Team Members ──
-export const teamMemberAddSchema = z.object({
-  profile_id: z.string().uuid("올바른 사용자 ID를 입력해주세요."),
-  role: z.enum(["leader", "member"]),
-});
-
-export const teamMemberUpdateSchema = z.object({
-  role: z.enum(["leader", "member"]),
-});
-
-export type TeamMemberAddInput = z.infer<typeof teamMemberAddSchema>;
 
 // ── Admins ──
 export const adminCreateSchema = z.object({
@@ -128,5 +127,16 @@ export const bulkDeleteSchema = z.object({
   ids: z.array(z.string().uuid()).min(1, "항목을 선택해주세요."),
 });
 
+export const bulkVisibilitySchema = z.object({
+  ids: z.array(z.string().uuid()).min(1, "항목을 선택해주세요."),
+  is_visible: z.boolean(),
+});
+
+export const bulkRestoreSchema = z.object({
+  ids: z.array(z.string().uuid()).min(1, "항목을 선택해주세요."),
+});
+
 export type BulkStatusInput = z.infer<typeof bulkStatusSchema>;
 export type BulkDeleteInput = z.infer<typeof bulkDeleteSchema>;
+export type BulkVisibilityInput = z.infer<typeof bulkVisibilitySchema>;
+export type BulkRestoreInput = z.infer<typeof bulkRestoreSchema>;

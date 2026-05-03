@@ -12,7 +12,7 @@ async function getAdmins(): Promise<AdminUser[]> {
   const adminClient = createAdminClient();
   const { data } = await adminClient
     .from("admin_users")
-    .select("id, auth_user_id, name, email, role, created_at")
+    .select("id, seq_id, auth_user_id, name, email, role, created_at")
     .order("created_at", { ascending: true });
   return (data ?? []) as AdminUser[];
 }

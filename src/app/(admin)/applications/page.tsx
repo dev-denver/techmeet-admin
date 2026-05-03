@@ -21,7 +21,7 @@ async function getApplications(params: { q?: string; status?: string; page?: str
   let query = adminClient
     .from("applications")
     .select(`
-      id, status, expected_rate, applied_at, created_at,
+      id, seq_id, status, expected_rate, applied_at, created_at,
       project:projects(id, title),
       profile:profiles!freelancer_id(id, name, email)
     `, { count: "exact" });

@@ -24,6 +24,8 @@ interface BulkActionsProps {
   statusOptions?: StatusOption[];
   bulkStatusEndpoint?: string;
   bulkDeleteEndpoint?: string;
+  visibilityEndpoint?: string;
+  bulkRestoreEndpoint?: string;
   exportType?: string;
 }
 
@@ -33,10 +35,13 @@ export function BulkActions({
   statusOptions,
   bulkStatusEndpoint,
   bulkDeleteEndpoint,
+  visibilityEndpoint,
+  bulkRestoreEndpoint,
   exportType,
 }: BulkActionsProps) {
   const router = useRouter();
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [restoreOpen, setRestoreOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleBulkStatus(status: string) {
@@ -46,6 +51,19 @@ export function BulkActions({
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ids: selectedIds, status }),
+    });
+    setLoading(false);
+    onClearSelection();
+    router.refresh();
+  }
+
+  async function handleBulkVisibility(is_visible: boolean) {
+    if (!visibilityEndpoint || selectedIds.length === 0) return;
+    setLoading(true);
+    await fetch(visibilityEndpoint, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: selectedIds, is_visible }),
     });
     setLoading(false);
     onClearSelection();
@@ -62,6 +80,20 @@ export function BulkActions({
     });
     setLoading(false);
     setDeleteOpen(false);
+    onClearSelection();
+    router.refresh();
+  }
+
+  async function handleBulkRestore() {
+    if (!bulkRestoreEndpoint || selectedIds.length === 0) return;
+    setLoading(true);
+    await fetch(bulkRestoreEndpoint, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: selectedIds }),
+    });
+    setLoading(false);
+    setRestoreOpen(false);
     onClearSelection();
     router.refresh();
   }
@@ -93,6 +125,36 @@ export function BulkActions({
                 </SelectContent>
               </Select>
             )}
+            {visibilityEndpoint && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleBulkVisibility(true)}
+                  disabled={loading}
+                >
+                  노출
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleBulkVisibility(false)}
+                  disabled={loading}
+                >
+                  숨김
+                </Button>
+              </>
+            )}
+            {bulkRestoreEndpoint && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setRestoreOpen(true)}
+                disabled={loading}
+              >
+                일괄 복구
+              </Button>
+            )}
             {bulkDeleteEndpoint && (
               <Button
                 variant="destructive"
@@ -120,10 +182,21 @@ export function BulkActions({
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         title="일괄 삭제"
-        description={`선택한 ${selectedIds.length}개 항목을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`}
+        description={`선택한 ${selectedIds.length}개 항목을 삭제하시겠습니까? 삭제된 항목은 '삭제된 항목' 필터에서 복구할 수 있습니다.`}
         confirmLabel="삭제"
         variant="destructive"
         onConfirm={handleBulkDelete}
+        loading={loading}
+      />
+
+      <ConfirmDialog
+        open={restoreOpen}
+        onOpenChange={setRestoreOpen}
+        title="일괄 복구"
+        description={`선택한 ${selectedIds.length}개 항목을 복구하시겠습니까?`}
+        confirmLabel="복구"
+        variant="default"
+        onConfirm={handleBulkRestore}
         loading={loading}
       />
     </>

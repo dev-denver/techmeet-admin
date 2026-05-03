@@ -21,8 +21,10 @@ const ACTION_LABELS: Record<string, { label: string; color: string }> = {
   create: { label: "생성", color: "default" },
   update: { label: "수정", color: "secondary" },
   delete: { label: "삭제", color: "destructive" },
+  restore: { label: "복구", color: "default" },
   bulk_update: { label: "일괄수정", color: "secondary" },
   bulk_delete: { label: "일괄삭제", color: "destructive" },
+  bulk_restore: { label: "일괄복구", color: "default" },
 };
 
 const RESOURCE_LABELS: Record<string, string> = {
@@ -30,7 +32,6 @@ const RESOURCE_LABELS: Record<string, string> = {
   projects: "프로젝트",
   applications: "지원서",
   notices: "공지사항",
-  teams: "팀",
   admins: "관리자",
 };
 

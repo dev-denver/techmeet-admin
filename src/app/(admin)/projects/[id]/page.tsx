@@ -33,7 +33,7 @@ async function getProjectApplications(projectId: string) {
   const { data } = await adminClient
     .from("applications")
     .select(`
-      id, status, expected_rate, applied_at, created_at,
+      id, seq_id, status, expected_rate, applied_at, created_at,
       profile:profiles!freelancer_id(id, name, email)
     `)
     .eq("project_id", projectId)
@@ -54,10 +54,17 @@ export default async function ProjectDetailPage({
 
   if (!project) notFound();
 
+  const isDeleted = !!project.deleted_at;
+
   return (
     <>
       <Header title="프로젝트 상세" />
       <main className="flex-1 overflow-y-auto p-6">
+        {isDeleted && (
+          <div className="mb-4 rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            이 프로젝트는 삭제된 상태입니다. 수정이 불가하며, 아래 복구 버튼으로 복원할 수 있습니다.
+          </div>
+        )}
         <Tabs defaultValue="info" className="w-full">
           <TabsList>
             <TabsTrigger value="info">기본 정보</TabsTrigger>
@@ -66,7 +73,7 @@ export default async function ProjectDetailPage({
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="info" className="max-w-2xl">
+          <TabsContent value="info" className="max-w-4xl mt-4">
             <ProjectForm project={project} />
           </TabsContent>
 
@@ -75,6 +82,7 @@ export default async function ProjectDetailPage({
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-16">ID</TableHead>
                     <TableHead>지원자</TableHead>
                     <TableHead>이메일</TableHead>
                     <TableHead>상태</TableHead>
@@ -85,7 +93,7 @@ export default async function ProjectDetailPage({
                 <TableBody>
                   {applications.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5}>
+                      <TableCell colSpan={6}>
                         <EmptyState title="지원자가 없습니다." />
                       </TableCell>
                     </TableRow>
@@ -95,6 +103,9 @@ export default async function ProjectDetailPage({
                       const profile = Array.isArray(app.profile) ? app.profile[0] : app.profile;
                       return (
                         <TableRow key={app.id}>
+                          <TableCell>
+                            <span className="font-mono text-xs text-muted-foreground">#{app.seq_id}</span>
+                          </TableCell>
                           <TableCell>
                             <Link
                               href={`/applications/${app.id}`}

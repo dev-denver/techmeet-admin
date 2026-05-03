@@ -2,6 +2,7 @@ import type { ProjectStatus } from "@/lib/constants/status";
 
 export interface Project {
   id: string;
+  seq_id: number;
   title: string;
   description: string;
   status: ProjectStatus;
@@ -16,6 +17,8 @@ export interface Project {
   headcount: number | null;
   requirements: string[];
   location: string | null;
+  is_visible: boolean;
+  deleted_at: string | null;
   created_at: string;
   updated_at: string;
   created_by: string | null;
@@ -23,10 +26,14 @@ export interface Project {
 
 export interface ProjectListItem {
   id: string;
+  seq_id: number;
   title: string;
+  description: string;
   status: ProjectStatus;
   duration_start_date: string | null;
   category: string | null;
+  is_visible: boolean;
+  deleted_at: string | null;
   created_at: string;
   application_count?: number;
 }

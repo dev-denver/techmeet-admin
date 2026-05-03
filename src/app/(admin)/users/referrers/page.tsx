@@ -50,8 +50,8 @@ async function getReferredUsers(params: { q?: string; page?: string }) {
   let query: any = adminClient
     .from("profiles")
     .select(
-      `id, name, email, created_at,
-       referrer:profiles!referrer_id(id, name, email)`,
+      `id, seq_id, name, email, created_at,
+       referrer:profiles!referrer_id(id, seq_id, name, email)`,
       { count: "exact" }
     )
     .not("referrer_id", "is", null);
@@ -115,8 +115,10 @@ export default async function ReferrersPage({ searchParams }: Props) {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-16">ID</TableHead>
                 <TableHead>피추천인</TableHead>
                 <TableHead>피추천인 이메일</TableHead>
+                <TableHead className="w-16">추천인 ID</TableHead>
                 <TableHead>추천인</TableHead>
                 <TableHead>추천인 이메일</TableHead>
                 <TableHead>가입일</TableHead>
@@ -125,7 +127,7 @@ export default async function ReferrersPage({ searchParams }: Props) {
             <TableBody>
               {users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5}>
+                  <TableCell colSpan={7}>
                     <EmptyState title="추천 가입 내역이 없습니다." />
                   </TableCell>
                 </TableRow>
@@ -136,11 +138,19 @@ export default async function ReferrersPage({ searchParams }: Props) {
                   return (
                     <TableRow key={user.id}>
                       <TableCell>
+                        <span className="font-mono text-xs text-muted-foreground">#{user.seq_id}</span>
+                      </TableCell>
+                      <TableCell>
                         <Link href={`/users/${user.id}`} className="font-medium hover:underline">
                           {user.name ?? "-"}
                         </Link>
                       </TableCell>
                       <TableCell className="text-muted-foreground">{user.email ?? "-"}</TableCell>
+                      <TableCell>
+                        <span className="font-mono text-xs text-muted-foreground">
+                          {referrer ? `#${referrer.seq_id}` : "-"}
+                        </span>
+                      </TableCell>
                       <TableCell>
                         {referrer ? (
                           <Link href={`/users/${referrer.id}`} className="hover:underline">

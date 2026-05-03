@@ -2,6 +2,7 @@ import type { ApplicationStatus } from "@/lib/constants/status";
 
 export interface Application {
   id: string;
+  seq_id: number;
   project_id: string;
   freelancer_id: string;
   status: ApplicationStatus;
@@ -23,6 +24,7 @@ export interface Application {
 
 export interface ApplicationListItem {
   id: string;
+  seq_id: number;
   project_id: string;
   freelancer_id: string;
   status: ApplicationStatus;

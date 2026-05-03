@@ -11,33 +11,33 @@ const EXPORT_CONFIGS: Record<string, {
 }> = {
   users: {
     table: "profiles",
-    select: "id, name, email, phone, tech_stack, experience_years, account_status, created_at",
-    headers: ["ID", "이름", "이메일", "연락처", "스킬", "경력(년)", "상태", "가입일"],
+    select: "seq_id, name, email, phone, tech_stack, experience_years, account_status, created_at",
+    headers: ["#ID", "이름", "이메일", "연락처", "스킬", "경력(년)", "상태", "가입일"],
     mapRow: (r) => [
-      String(r.id), String(r.name), String(r.email),
+      `#${r.seq_id}`, String(r.name), String(r.email),
       String(r.phone ?? ""), (r.tech_stack as string[])?.join(", ") ?? "",
       String(r.experience_years ?? ""), String(r.account_status), String(r.created_at),
     ],
   },
   projects: {
     table: "projects",
-    select: "id, title, status, category, duration_start_date, duration_end_date, created_at",
-    headers: ["ID", "제목", "상태", "카테고리", "시작일", "종료일", "등록일"],
+    select: "seq_id, title, status, category, duration_start_date, duration_end_date, created_at",
+    headers: ["#ID", "제목", "상태", "카테고리", "시작일", "종료일", "등록일"],
     mapRow: (r) => [
-      String(r.id), String(r.title), String(r.status),
+      `#${r.seq_id}`, String(r.title), String(r.status),
       String(r.category ?? ""), String(r.duration_start_date ?? ""),
       String(r.duration_end_date ?? ""), String(r.created_at),
     ],
   },
   applications: {
     table: "applications",
-    select: "id, status, expected_rate, applied_at, project:projects(title), profile:profiles!freelancer_id(name, email)",
-    headers: ["ID", "프로젝트", "지원자", "이메일", "상태", "희망요율", "지원일"],
+    select: "seq_id, status, expected_rate, applied_at, project:projects(title), profile:profiles!freelancer_id(name, email)",
+    headers: ["#ID", "프로젝트", "지원자", "이메일", "상태", "희망요율", "지원일"],
     mapRow: (r) => {
       const project = Array.isArray(r.project) ? (r.project as Record<string, unknown>[])[0] : r.project as Record<string, unknown> | null;
       const profile = Array.isArray(r.profile) ? (r.profile as Record<string, unknown>[])[0] : r.profile as Record<string, unknown> | null;
       return [
-        String(r.id), String(project?.title ?? ""),
+        `#${r.seq_id}`, String(project?.title ?? ""),
         String(profile?.name ?? ""), String(profile?.email ?? ""),
         String(r.status), String(r.expected_rate ?? ""), String(r.applied_at ?? ""),
       ];
