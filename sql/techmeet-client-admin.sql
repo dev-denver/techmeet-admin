@@ -54,11 +54,8 @@ create table if not exists public.profiles (
   email                            text        not null,                                                  -- 이메일
   phone                            text,                                                                  -- 전화번호
   bio                              text,                                                                  -- 자기소개
-  headline                         text,                                                                  -- 한줄 소개
-  tech_stack                       text[]      not null default array[]::text[],                         -- 기술 스택
+  tech_stack                       text[]      not null default array[]::text[],                          -- 기술 스택
   experience_years                 integer,                                                               -- 경력 연수
-  portfolio_url                    text,                                                                  -- 포트폴리오 URL
-  avatar_url                       text,                                                                  -- 프로필 이미지 URL
   kakao_id                         text,                                                                  -- 카카오 ID
   availability_status              text                                                                   -- 투입 가능 상태 (available/partial/unavailable)
     check (availability_status in ('available', 'partial', 'unavailable')),
@@ -68,7 +65,7 @@ create table if not exists public.profiles (
   account_status                   text        not null default 'active'                                  -- 계정 상태 (active/withdrawn)
     check (account_status in ('active', 'withdrawn')),
   withdrawn_at                     timestamptz,                                                           -- 탈퇴 일시
-  referrer_id                      uuid        references public.profiles(id) on delete set null,        -- 추천인 프로필 ID
+  referrer_id                      uuid        references public.profiles(id) on delete set null,         -- 추천인 프로필 ID
   created_at                       timestamptz not null default now(),                                    -- 생성 일시
   updated_at                       timestamptz not null default now()                                     -- 수정 일시
 );
@@ -95,15 +92,15 @@ create trigger profiles_updated_at
 -- 2. careers (경력)
 -- ------------------------------------------------------------
 create table if not exists public.careers (
-  id          uuid        default gen_random_uuid() primary key,                           -- 고유 식별자
-  profile_id  uuid        references public.profiles(id) on delete cascade not null,       -- 프로필 ID
+  id          uuid        default gen_random_uuid() primary key,                            -- 고유 식별자
+  profile_id  uuid        references public.profiles(id) on delete cascade not null,        -- 프로필 ID
   company     text        not null,                                                         -- 회사명
   role        text        not null,                                                         -- 직무
   start_date  date        not null,                                                         -- 시작일
   end_date    date,                                                                         -- 종료일
   is_current  boolean     not null default false,                                           -- 현재 재직 여부
   description text,                                                                         -- 업무 설명
-  tech_stack  text[]      not null default array[]::text[],                                -- 사용 기술 스택
+  tech_stack  text[]      not null default array[]::text[],                                 -- 사용 기술 스택
   created_at  timestamptz not null default now(),                                           -- 생성 일시
   updated_at  timestamptz not null default now(),                                           -- 수정 일시
   check ((is_current = false) or (is_current = true and end_date is null))
@@ -137,18 +134,15 @@ create trigger careers_updated_at
 -- 3. projects (프로젝트)
 -- ------------------------------------------------------------
 create table if not exists public.projects (
-  id                  uuid        default gen_random_uuid() primary key,                   -- 고유 식별자
+  id                  uuid        default gen_random_uuid() primary key,                    -- 고유 식별자
   title               text        not null,                                                 -- 프로젝트명
   description         text        not null default '',                                      -- 프로젝트 설명
   status              text        not null default 'recruiting'                             -- 진행 상태 (recruiting/in_progress/completed/cancelled)
     check (status in ('recruiting', 'in_progress', 'completed', 'cancelled')),
-  budget_min          numeric,                                                              -- 최소 예산
-  budget_max          numeric,                                                              -- 최대 예산
-  budget_currency     text        not null default 'KRW',                                  -- 예산 통화
   duration_start_date date,                                                                 -- 프로젝트 시작일
   duration_end_date   date,                                                                 -- 프로젝트 종료일
   deadline            date,                                                                 -- 지원 마감일
-  tech_stack          text[]      not null default array[]::text[],                        -- 요구 기술 스택
+  tech_stack          text[]      not null default array[]::text[],                         -- 요구 기술 스택
   requirements        text[],                                                               -- 요구 사항
   category            text,                                                                 -- 카테고리
   client_name         text,                                                                 -- 클라이언트명
@@ -158,7 +152,7 @@ create table if not exists public.projects (
     check (work_type in ('remote', 'onsite', 'hybrid')),
   location            text,                                                                 -- 근무 위치
   headcount           integer,                                                              -- 모집 인원
-  created_by          uuid        references public.profiles(id) on delete set null,       -- 등록 관리자 프로필 ID
+  created_by          uuid        references public.profiles(id) on delete set null,        -- 등록 관리자 프로필 ID
   created_at          timestamptz not null default now(),                                   -- 생성 일시
   updated_at          timestamptz not null default now()                                    -- 수정 일시
 );
@@ -178,7 +172,7 @@ create trigger projects_updated_at
 -- 4. notices (공지사항)
 -- ------------------------------------------------------------
 create table if not exists public.notices (
-  id           uuid        default gen_random_uuid() primary key,                          -- 고유 식별자
+  id           uuid        default gen_random_uuid() primary key,                           -- 고유 식별자
   title        text        not null,                                                        -- 제목
   content      text        not null default '',                                             -- 내용
   is_published boolean     not null default false,                                          -- 게시 여부
@@ -187,7 +181,7 @@ create table if not exists public.notices (
     check (notice_type in ('immediate', 'scheduled')),
   start_at     timestamptz,                                                                 -- 게시 시작 일시 (예약 공지)
   end_at       timestamptz,                                                                 -- 게시 종료 일시 (예약 공지)
-  created_by   uuid        references public.profiles(id) on delete set null,              -- 작성 관리자 프로필 ID
+  created_by   uuid        references public.profiles(id) on delete set null,               -- 작성 관리자 프로필 ID
   created_at   timestamptz not null default now(),                                          -- 생성 일시
   updated_at   timestamptz not null default now()                                           -- 수정 일시
 );
@@ -293,11 +287,11 @@ create trigger admin_users_updated_at
 -- 7. alimtalk_templates (카카오 알림톡 서식)
 -- ------------------------------------------------------------
 create table if not exists public.alimtalk_templates (
-  id           uuid        default gen_random_uuid() primary key,                          -- 고유 식별자
+  id           uuid        default gen_random_uuid() primary key,                           -- 고유 식별자
   code         text        not null unique,                                                 -- 서식 코드 (고유)
   name         text        not null,                                                        -- 서식명
   body         text        not null default '',                                             -- 메시지 본문 템플릿
-  variables    text[]      not null default array[]::text[],                               -- 치환 변수 목록
+  variables    text[]      not null default array[]::text[],                                -- 치환 변수 목록
   service_type text        not null                                                         -- 발송 대상 유형 (project/notice/individual/all)
     check (service_type in ('project', 'notice', 'individual', 'all')),
   is_active    boolean     not null default true,                                           -- 사용 여부
@@ -317,8 +311,8 @@ create trigger alimtalk_templates_updated_at
 -- 8. alimtalk_logs (카카오 알림톡 발송 이력)
 -- ------------------------------------------------------------
 create table if not exists public.alimtalk_logs (
-  id            uuid        default gen_random_uuid() primary key,                         -- 고유 식별자
-  user_id       uuid        references public.profiles(id) on delete set null,             -- 수신자 프로필 ID
+  id            uuid        default gen_random_uuid() primary key,                          -- 고유 식별자
+  user_id       uuid        references public.profiles(id) on delete set null,              -- 수신자 프로필 ID
   template_code text        not null,                                                       -- 사용 서식 코드
   template_name text        not null,                                                       -- 사용 서식명
   service_type  text        not null check (service_type in ('project', 'notice', 'individual')), -- 발송 유형
@@ -347,8 +341,8 @@ alter table public.alimtalk_logs
 -- 9. admin_audit_logs (관리자 감사 로그)
 -- ------------------------------------------------------------
 create table if not exists public.admin_audit_logs (
-  id          uuid        default gen_random_uuid() primary key,                           -- 고유 식별자
-  admin_id    uuid        references public.admin_users(id) on delete set null,            -- 관리자 ID
+  id          uuid        default gen_random_uuid() primary key,                            -- 고유 식별자
+  admin_id    uuid        references public.admin_users(id) on delete set null,             -- 관리자 ID
   admin_name  text        not null,                                                         -- 관리자 이름 (비정규화)
   action      text        not null,                                                         -- 수행 액션
   resource    text        not null,                                                         -- 대상 리소스
