@@ -31,8 +31,6 @@ const projectSchema = z.object({
   title: z.string().min(1, "제목을 입력해주세요"),
   description: z.string().min(1, "설명을 입력해주세요"),
   status: z.enum(["recruiting", "in_progress", "completed", "cancelled"]),
-  budget_min: z.union([z.number(), z.null()]),
-  budget_max: z.union([z.number(), z.null()]),
   duration_start_date: z.string().nullable(),
   duration_end_date: z.string().nullable(),
   tech_stack: z.string(),
@@ -58,8 +56,6 @@ export function ProjectForm({ project }: ProjectFormProps) {
       title: project?.title ?? "",
       description: project?.description ?? "",
       status: project?.status ?? "recruiting",
-      budget_min: project?.budget_min ?? null,
-      budget_max: project?.budget_max ?? null,
       duration_start_date: project?.duration_start_date ?? null,
       duration_end_date: project?.duration_end_date ?? null,
       tech_stack: project?.tech_stack?.join(", ") ?? "",
@@ -178,51 +174,6 @@ export function ProjectForm({ project }: ProjectFormProps) {
                       value={field.value ?? ""}
                       onChange={(e) =>
                         field.onChange(e.target.value || null)
-                      }
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="budget_min"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>최소 예산 (원)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="0"
-                      {...field}
-                      value={field.value ?? ""}
-                      onChange={(e) =>
-                        field.onChange(e.target.value ? Number(e.target.value) : null)
-                      }
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="budget_max"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>최대 예산 (원)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="0"
-                      {...field}
-                      value={field.value ?? ""}
-                      onChange={(e) =>
-                        field.onChange(e.target.value ? Number(e.target.value) : null)
                       }
                     />
                   </FormControl>

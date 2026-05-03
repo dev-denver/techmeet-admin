@@ -21,8 +21,6 @@ export const projectCreateSchema = z.object({
   title: z.string().min(1, "제목을 입력해주세요.").max(200, "제목은 200자 이내로 입력해주세요."),
   description: z.string().min(1, "설명을 입력해주세요."),
   status: z.enum(["recruiting", "in_progress", "completed", "cancelled"]),
-  budget_min: z.union([z.number().min(0), z.null()]),
-  budget_max: z.union([z.number().min(0), z.null()]),
   duration_start_date: z.string().nullable(),
   duration_end_date: z.string().nullable(),
   tech_stack: z.array(z.string()),
@@ -87,20 +85,34 @@ export const adminCreateSchema = z.object({
 
 export type AdminCreateInput = z.infer<typeof adminCreateSchema>;
 
-// ── Alimtalk ──
+// ── Alimtalk Templates ──
+export const alimtalkTemplateCreateSchema = z.object({
+  code:         z.string().min(1).max(100).regex(/^[A-Z0-9_]+$/, "대문자·숫자·언더스코어만 사용 가능합니다."),
+  name:         z.string().min(1, "템플릿 이름을 입력해주세요.").max(200),
+  body:         z.string().min(1, "본문을 입력해주세요."),
+  variables:    z.array(z.string()).default([]),
+  service_type: z.enum(["project", "notice", "individual", "all"]),
+  is_active:    z.boolean().default(true),
+});
+
+export const alimtalkTemplateUpdateSchema = alimtalkTemplateCreateSchema.partial().omit({ code: true });
+
+export type AlimtalkTemplateCreateInput = z.infer<typeof alimtalkTemplateCreateSchema>;
+export type AlimtalkTemplateUpdateInput = z.infer<typeof alimtalkTemplateUpdateSchema>;
+
+// ── Alimtalk Send (template_id 기반) ──
 export const alimtalkSendSchema = z.object({
-  template_code: z.string().min(1, "템플릿 코드를 입력해주세요."),
-  template_name: z.string().min(1, "템플릿 이름을 입력해주세요."),
+  template_id:  z.string().uuid("템플릿을 선택해주세요."),
   service_type: z.enum(["project", "notice", "individual"]),
-  send_type: z.enum(["immediate", "scheduled"]),
+  send_type:    z.enum(["immediate", "scheduled"]),
   scheduled_at: z.string().nullable().optional(),
-  target: z.enum(["all", "individual"]),
-  user_id: z.string().uuid().optional(),
+  target:       z.enum(["all", "individual"]),
+  user_id:      z.string().uuid().optional(),
 }).refine(
-  (data) => data.target !== "individual" || data.user_id,
+  (d) => d.target !== "individual" || d.user_id,
   { message: "개별 발송 시 사용자를 선택해주세요.", path: ["user_id"] }
 ).refine(
-  (data) => data.send_type !== "scheduled" || data.scheduled_at,
+  (d) => d.send_type !== "scheduled" || d.scheduled_at,
   { message: "예약 발송 시 발송 시간을 입력해주세요.", path: ["scheduled_at"] }
 );
 

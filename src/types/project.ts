@@ -5,8 +5,6 @@ export interface Project {
   title: string;
   description: string;
   status: ProjectStatus;
-  budget_min: number | null;
-  budget_max: number | null;
   duration_start_date: string | null;
   duration_end_date: string | null;
   tech_stack: string[];
@@ -14,7 +12,6 @@ export interface Project {
   client_name: string | null;
   project_type: string | null;
   work_type: string | null;
-  budget_currency: string | null;
   deadline: string | null;
   headcount: number | null;
   requirements: string[];
@@ -28,8 +25,6 @@ export interface ProjectListItem {
   id: string;
   title: string;
   status: ProjectStatus;
-  budget_min: number | null;
-  budget_max: number | null;
   duration_start_date: string | null;
   category: string | null;
   created_at: string;
@@ -40,8 +35,6 @@ export interface ProjectFormValues {
   title: string;
   description: string;
   status: ProjectStatus;
-  budget_min: number | null;
-  budget_max: number | null;
   duration_start_date: string | null;
   duration_end_date: string | null;
   tech_stack: string[];

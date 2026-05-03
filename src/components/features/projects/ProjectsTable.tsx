@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PROJECT_STATUS } from "@/lib/constants/status";
-import { formatDate, formatBudget } from "@/lib/utils/format";
+import { formatDate } from "@/lib/utils/format";
 import type { ProjectListItem } from "@/types";
 
 interface ProjectsTableProps {
@@ -60,7 +60,6 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
               <TableHead>제목</TableHead>
               <TableHead>상태</TableHead>
               <TableHead>카테고리</TableHead>
-              <TableHead>예산</TableHead>
               <TableHead>시작일</TableHead>
               <TableHead>등록일</TableHead>
             </TableRow>
@@ -68,7 +67,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
           <TableBody>
             {projects.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7}>
+                <TableCell colSpan={6}>
                   <EmptyState title="프로젝트가 없습니다." />
                 </TableCell>
               </TableRow>
@@ -97,11 +96,6 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
                       </Badge>
                     </TableCell>
                     <TableCell>{project.category ?? "-"}</TableCell>
-                    <TableCell>
-                      {project.budget_min != null
-                        ? `${formatBudget(project.budget_min)} ~ ${project.budget_max != null ? formatBudget(project.budget_max) : ""}`
-                        : "-"}
-                    </TableCell>
                     <TableCell>{formatDate(project.duration_start_date)}</TableCell>
                     <TableCell>{formatDate(project.created_at)}</TableCell>
                   </TableRow>

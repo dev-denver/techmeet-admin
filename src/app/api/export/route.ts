@@ -21,11 +21,10 @@ const EXPORT_CONFIGS: Record<string, {
   },
   projects: {
     table: "projects",
-    select: "id, title, status, budget_min, budget_max, category, duration_start_date, duration_end_date, created_at",
-    headers: ["ID", "제목", "상태", "최소예산", "최대예산", "카테고리", "시작일", "종료일", "등록일"],
+    select: "id, title, status, category, duration_start_date, duration_end_date, created_at",
+    headers: ["ID", "제목", "상태", "카테고리", "시작일", "종료일", "등록일"],
     mapRow: (r) => [
       String(r.id), String(r.title), String(r.status),
-      String(r.budget_min ?? ""), String(r.budget_max ?? ""),
       String(r.category ?? ""), String(r.duration_start_date ?? ""),
       String(r.duration_end_date ?? ""), String(r.created_at),
     ],
@@ -47,10 +46,12 @@ const EXPORT_CONFIGS: Record<string, {
 };
 
 function escapeCsv(value: string): string {
-  if (value.includes(",") || value.includes('"') || value.includes("\n")) {
-    return `"${value.replace(/"/g, '""')}"`;
+  // Excel 수식 인젝션 방어: =, +, -, @ 로 시작하는 값에 탭 프리픽스
+  const sanitized = /^[=+\-@]/.test(value) ? `\t${value}` : value;
+  if (sanitized.includes(",") || sanitized.includes('"') || sanitized.includes("\n") || sanitized.includes("\t")) {
+    return `"${sanitized.replace(/"/g, '""')}"`;
   }
-  return value;
+  return sanitized;
 }
 
 export async function GET(request: NextRequest) {

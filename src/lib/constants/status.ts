@@ -52,3 +52,12 @@ export const ADMIN_ROLE = {
 } as const;
 
 export type AdminRole = keyof typeof ADMIN_ROLE;
+
+export const ALIMTALK_SERVICE_TYPE = {
+  project:    { label: "프로젝트", color: "default" },
+  notice:     { label: "공지",     color: "secondary" },
+  individual: { label: "개별",     color: "outline" },
+  all:        { label: "전체",     color: "outline" },
+} as const;
+
+export type AlimtalkServiceType = keyof typeof ALIMTALK_SERVICE_TYPE;

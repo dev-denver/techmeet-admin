@@ -16,6 +16,7 @@ import {
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { formatDateTime } from "@/lib/utils/format";
 import { Send } from "lucide-react";
+import { AlimtalkNav } from "@/components/features/alimtalk/AlimtalkNav";
 import type { AlimtalkLog } from "@/types";
 
 const PAGE_SIZE = 20;
@@ -52,6 +53,7 @@ export default async function AlimtalkPage({ searchParams }: Props) {
     <>
       <Header title="알림톡" />
       <main className="flex-1 overflow-y-auto p-6">
+        <AlimtalkNav />
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm text-muted-foreground">총 {total}건</p>
           <Button asChild size="sm">

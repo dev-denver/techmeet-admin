@@ -29,6 +29,7 @@ export interface ProfileListItem {
   email: string;
   phone: string | null;
   tech_stack: string[];
+  experience_years: number | null;
   account_status: AccountStatus;
   created_at: string;
   application_count?: number;

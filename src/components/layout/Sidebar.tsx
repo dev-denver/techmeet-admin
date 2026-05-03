@@ -6,26 +6,24 @@ import {
   LayoutDashboard,
   FolderOpen,
   Users,
-  UsersRound,
+  UserCheck,
   FileText,
   Bell,
   MessageSquare,
   ShieldCheck,
-  ClipboardList,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { Button } from "@/components/ui/button";
 
-const navItems = [
+const navItems: { href: string; label: string; icon: React.ElementType; sub?: boolean }[] = [
   { href: "/dashboard", label: "대시보드", icon: LayoutDashboard },
   { href: "/projects", label: "프로젝트", icon: FolderOpen },
-  { href: "/users", label: "사용자", icon: Users },
-  { href: "/teams", label: "팀", icon: UsersRound },
   { href: "/applications", label: "지원서", icon: FileText },
-  { href: "/notices", label: "공지사항", icon: Bell },
+  { href: "/users", label: "사용자", icon: Users },
+  { href: "/users/referrers", label: "추천인 관리", icon: UserCheck, sub: true },
   { href: "/alimtalk", label: "알림톡", icon: MessageSquare },
-  { href: "/audit-logs", label: "활동 로그", icon: ClipboardList },
+  { href: "/notices", label: "공지사항", icon: Bell },
 ];
 
 interface SidebarProps {
@@ -60,15 +58,20 @@ export function Sidebar({ onClose, adminRole }: SidebarProps) {
       <nav className="flex-1 space-y-1 px-3 py-4">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive =
-            pathname === item.href || pathname.startsWith(item.href + "/");
+          // 사용자 하위 항목은 /users/referrers 만 활성 처리, 그 외 /users/* 는 사용자 항목이 활성
+          const isActive = item.sub
+            ? pathname === item.href || pathname.startsWith(item.href + "/")
+            : item.href === "/users"
+            ? pathname === "/users" || (pathname.startsWith("/users/") && !pathname.startsWith("/users/referrers"))
+            : pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
               key={item.href}
               href={item.href}
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                "flex items-center gap-3 rounded-md py-2 text-sm font-medium transition-colors",
+                item.sub ? "pl-8 pr-3" : "px-3",
                 isActive
                   ? "bg-zinc-800 text-white"
                   : "text-zinc-400 hover:bg-zinc-800 hover:text-white"

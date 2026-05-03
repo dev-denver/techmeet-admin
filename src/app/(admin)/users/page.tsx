@@ -33,7 +33,7 @@ async function getUsers(params: { q?: string; status?: string; page?: string }) 
 
   let query = adminClient
     .from("profiles")
-    .select("id, name, email, phone, tech_stack, account_status, created_at", { count: "exact" });
+    .select("id, name, email, phone, tech_stack, experience_years, account_status, created_at", { count: "exact" });
 
   if (params.q) {
     query = query.or(`name.ilike.%${params.q}%,email.ilike.%${params.q}%,phone.ilike.%${params.q}%`);
@@ -57,7 +57,7 @@ export default async function UsersPage({ searchParams }: Props) {
     <>
       <Header title="사용자" />
       <main className="flex-1 overflow-y-auto p-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
           <Suspense>
             <ListFilter
               searchPlaceholder="이름, 이메일, 연락처 검색..."
@@ -73,7 +73,10 @@ export default async function UsersPage({ searchParams }: Props) {
               ]}
             />
           </Suspense>
-          <ExportButton type="users" />
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-sm text-muted-foreground">전체 {total}명</span>
+            <ExportButton type="users" />
+          </div>
         </div>
 
         <div className="rounded-md border">
@@ -83,7 +86,8 @@ export default async function UsersPage({ searchParams }: Props) {
                 <TableHead>이름</TableHead>
                 <TableHead>이메일</TableHead>
                 <TableHead>연락처</TableHead>
-                <TableHead>스킬</TableHead>
+                <TableHead>기술스택</TableHead>
+                <TableHead className="text-center">경력(년)</TableHead>
                 <TableHead>상태</TableHead>
                 <TableHead>가입일</TableHead>
               </TableRow>
@@ -91,8 +95,8 @@ export default async function UsersPage({ searchParams }: Props) {
             <TableBody>
               {users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6}>
-                    <EmptyState title="사용자가 없습니다." />
+                  <TableCell colSpan={7}>
+                    <EmptyState title="등록된 개발자가 없습니다." />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -108,13 +112,23 @@ export default async function UsersPage({ searchParams }: Props) {
                           {user.name}
                         </Link>
                       </TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>{user.phone ?? "-"}</TableCell>
+                      <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                      <TableCell className="text-muted-foreground">{user.phone ?? "-"}</TableCell>
                       <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {user.tech_stack?.slice(0, 3).join(", ")}
-                          {user.tech_stack?.length > 3 && ` +${user.tech_stack.length - 3}`}
-                        </span>
+                        <div className="flex flex-wrap gap-1 max-w-[200px]">
+                          {user.tech_stack?.slice(0, 3).map((skill: string) => (
+                            <span key={skill} className="text-xs bg-muted rounded px-1.5 py-0.5">{skill}</span>
+                          ))}
+                          {user.tech_stack?.length > 3 && (
+                            <span className="text-xs text-muted-foreground">+{user.tech_stack.length - 3}</span>
+                          )}
+                          {(!user.tech_stack || user.tech_stack.length === 0) && (
+                            <span className="text-xs text-muted-foreground">-</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {user.experience_years != null ? `${user.experience_years}년` : "-"}
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -123,7 +137,7 @@ export default async function UsersPage({ searchParams }: Props) {
                           {statusConfig?.label ?? user.account_status}
                         </Badge>
                       </TableCell>
-                      <TableCell>{formatDate(user.created_at)}</TableCell>
+                      <TableCell className="text-muted-foreground">{formatDate(user.created_at)}</TableCell>
                     </TableRow>
                   );
                 })

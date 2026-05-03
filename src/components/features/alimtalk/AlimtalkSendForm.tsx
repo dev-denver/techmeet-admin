@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -22,15 +23,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { AlimtalkTemplate } from "@/types";
 
 const sendSchema = z.object({
-  template_code: z.string().min(1, "템플릿 코드를 입력해주세요"),
-  template_name: z.string().min(1, "템플릿 이름을 입력해주세요"),
+  template_id:  z.string().min(1, "템플릿을 선택해주세요."),
   service_type: z.enum(["project", "notice", "individual"]),
-  send_type: z.enum(["immediate", "scheduled"]),
+  send_type:    z.enum(["immediate", "scheduled"]),
   scheduled_at: z.string().nullable(),
-  target: z.enum(["all", "individual"]),
-  user_id: z.string().optional(),
+  target:       z.enum(["all", "individual"]),
+  user_id:      z.string().optional(),
 });
 
 type SendFormValues = z.infer<typeof sendSchema>;
@@ -39,21 +40,34 @@ export function AlimtalkSendForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [templates, setTemplates] = useState<AlimtalkTemplate[]>([]);
+
+  useEffect(() => {
+    fetch("/api/alimtalk/templates?active=true&include_body=true")
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.success) setTemplates(res.data);
+      })
+      .catch(() => {});
+  }, []);
 
   const form = useForm<SendFormValues>({
     resolver: zodResolver(sendSchema),
     defaultValues: {
-      template_code: "",
-      template_name: "",
+      template_id:  "",
       service_type: "notice",
-      send_type: "immediate",
+      send_type:    "immediate",
       scheduled_at: null,
-      target: "all",
+      target:       "all",
     },
   });
 
   const sendType = form.watch("send_type");
   const target = form.watch("target");
+
+  function handleTemplateChange(id: string) {
+    form.setValue("template_id", id);
+  }
 
   async function onSubmit(values: SendFormValues) {
     setError(null);
@@ -75,37 +89,57 @@ export function AlimtalkSendForm() {
     setTimeout(() => router.push("/alimtalk"), 1500);
   }
 
+  // 선택된 템플릿의 body 찾기
+  const templateId = form.watch("template_id");
+  const selectedTemplate = templates.find((t) => t.id === templateId);
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="template_code"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>템플릿 코드</FormLabel>
+        <FormField
+          control={form.control}
+          name="template_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>템플릿</FormLabel>
+              <Select onValueChange={(v) => { field.onChange(v); handleTemplateChange(v); }} value={field.value}>
                 <FormControl>
-                  <Input placeholder="TEMPLATE_001" {...field} />
+                  <SelectTrigger>
+                    <SelectValue placeholder="템플릿을 선택해주세요" />
+                  </SelectTrigger>
                 </FormControl>
-                <FormMessage />
-              </FormItem>
+                <SelectContent>
+                  {templates.length === 0 && (
+                    <SelectItem value="_none" disabled>등록된 템플릿이 없습니다.</SelectItem>
+                  )}
+                  {templates.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      [{t.code}] {t.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {selectedTemplate && (
+          <div className="space-y-1">
+            <p className="text-sm font-medium">본문 미리보기</p>
+            <Textarea
+              value={selectedTemplate.body}
+              readOnly
+              rows={5}
+              className="bg-muted resize-none text-sm text-muted-foreground"
+            />
+            {selectedTemplate.variables.length > 0 && (
+              <p className="text-xs text-muted-foreground">
+                치환 변수: {selectedTemplate.variables.map((v) => `#{${v}}`).join(", ")}
+              </p>
             )}
-          />
-          <FormField
-            control={form.control}
-            name="template_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>템플릿 이름</FormLabel>
-                <FormControl>
-                  <Input placeholder="프로젝트 모집 알림" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <FormField

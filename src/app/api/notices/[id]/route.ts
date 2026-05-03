@@ -3,6 +3,7 @@ import { verifyAdmin } from "@/lib/api/verify-admin";
 import { apiSuccess, apiDbError, apiNotFound, parseBody } from "@/lib/api/response";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { noticeUpdateSchema } from "@/lib/api/schemas";
+import { logAudit } from "@/lib/api/audit";
 
 export async function GET(
   _request: NextRequest,
@@ -28,7 +29,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { error } = await verifyAdmin();
+  const { error, adminUser } = await verifyAdmin();
   if (error) return error;
 
   const { data: body, error: parseError } = await parseBody(request, noticeUpdateSchema);
@@ -46,6 +47,15 @@ export async function PUT(
 
   if (dbError) return apiDbError(dbError.message);
 
+  await logAudit({
+    adminId: adminUser!.id,
+    adminName: adminUser!.name,
+    action: "update",
+    resource: "notices",
+    resourceId: id,
+    details: body as Record<string, unknown>,
+  });
+
   return apiSuccess(data);
 }
 
@@ -53,7 +63,7 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { error } = await verifyAdmin();
+  const { error, adminUser } = await verifyAdmin();
   if (error) return error;
 
   const { id } = await params;
@@ -64,6 +74,14 @@ export async function DELETE(
     .eq("id", id);
 
   if (dbError) return apiDbError(dbError.message);
+
+  await logAudit({
+    adminId: adminUser!.id,
+    adminName: adminUser!.name,
+    action: "delete",
+    resource: "notices",
+    resourceId: id,
+  });
 
   return apiSuccess({ deleted: true });
 }

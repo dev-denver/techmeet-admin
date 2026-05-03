@@ -3,6 +3,7 @@ import { verifyAdmin } from "@/lib/api/verify-admin";
 import { apiSuccess, apiDbError, parseBody } from "@/lib/api/response";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { noticeCreateSchema } from "@/lib/api/schemas";
+import { logAudit } from "@/lib/api/audit";
 
 export async function GET() {
   const { error } = await verifyAdmin();
@@ -20,7 +21,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const { error } = await verifyAdmin();
+  const { error, adminUser } = await verifyAdmin();
   if (error) return error;
 
   const { data: body, error: parseError } = await parseBody(request, noticeCreateSchema);
@@ -34,6 +35,15 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (dbError) return apiDbError(dbError.message);
+
+  await logAudit({
+    adminId: adminUser!.id,
+    adminName: adminUser!.name,
+    action: "create",
+    resource: "notices",
+    resourceId: data.id,
+    details: { title: body.title },
+  });
 
   return apiSuccess(data, 201);
 }

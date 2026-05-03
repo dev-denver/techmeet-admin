@@ -1,12 +1,24 @@
 import { createClient } from "@supabase/supabase-js";
 
-const SUPABASE_URL = "https://yuwaxjzazyaubjweftfr.supabase.co";
-const SERVICE_ROLE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1d2F4anphenlhdWJqd2VmdGZyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTQxMjcxMSwiZXhwIjoyMDg2OTg4NzExfQ.75b8eSHZVRSVkEF6l9qEk4qlZUZVVXcEQp6nUNYszx0";
+// .env.local 에서 로드 (node --env-file=.env.local scripts/create-admin.mjs)
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const ADMIN_EMAIL = process.env.ADMIN_INITIAL_EMAIL ?? "admin@techmeet.com";
+const ADMIN_PASSWORD = process.env.ADMIN_INITIAL_PASSWORD;
+const ADMIN_NAME = process.env.ADMIN_INITIAL_NAME ?? "마스터 관리자";
 
-const ADMIN_EMAIL = "admin@techmeet.com";
-const ADMIN_PASSWORD = "qwer1234!";
-const ADMIN_NAME = "마스터 관리자";
+if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
+  console.error("[오류] NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY 환경변수가 필요합니다.");
+  console.error("  실행 방법: node --env-file=.env.local scripts/create-admin.mjs");
+  process.exit(1);
+}
+
+if (!ADMIN_PASSWORD) {
+  console.error("[오류] ADMIN_INITIAL_PASSWORD 환경변수가 필요합니다.");
+  console.error("  .env.local 에 아래 항목을 추가하세요:");
+  console.error("  ADMIN_INITIAL_PASSWORD=your_secure_password");
+  process.exit(1);
+}
 
 const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
@@ -90,7 +102,6 @@ values ('${authUserId}', '${ADMIN_NAME}', '${ADMIN_EMAIL}', 'superadmin');
   console.log("마스터 관리자 계정 생성 완료!");
   console.log("========================================");
   console.log(`  이메일  : ${ADMIN_EMAIL}`);
-  console.log(`  비밀번호: ${ADMIN_PASSWORD}`);
   console.log(`  권한    : superadmin`);
   console.log("  로그인  : http://localhost:3001/login");
   console.log("========================================");
