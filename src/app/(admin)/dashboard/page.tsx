@@ -32,6 +32,8 @@ async function getDashboardData() {
     recentUsersResult,
     recentApplicationsResult,
     recentAuditResult,
+    availabilityResult,
+    expiringAppsResult,
   ] = await Promise.all([
     adminClient.from("profiles").select("*", { count: "exact", head: true }).eq("account_status", "active"),
     adminClient.from("profiles").select("*", { count: "exact", head: true }),
@@ -52,12 +54,46 @@ async function getDashboardData() {
       .select("id, admin_name, action, resource, created_at")
       .order("created_at", { ascending: false })
       .limit(5),
+    adminClient.from("profiles").select("availability_status").eq("account_status", "active"),
+    adminClient
+      .from("applications")
+      .select("freelancer_id, profiles(id, name, email), projects(id, title, duration_end_date, status)")
+      .eq("status", "accepted")
+      .limit(100),
   ]);
 
   const projectStatusCounts: Record<string, number> = {};
   (projectStatusResult.data ?? []).forEach((p: { status: string }) => {
     projectStatusCounts[p.status] = (projectStatusCounts[p.status] ?? 0) + 1;
   });
+
+  const availabilityMap: Record<string, number> = { available: 0, partial: 0, unavailable: 0 };
+  (availabilityResult.data ?? []).forEach((p: { availability_status: string | null }) => {
+    const s = p.availability_status;
+    if (s && s in availabilityMap) availabilityMap[s]++;
+  });
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const ninetyDaysLater = new Date(today);
+  ninetyDaysLater.setDate(today.getDate() + 90);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const expiringDevs = (expiringAppsResult.data ?? [] as any[])
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .filter((app: any) => {
+      const proj = Array.isArray(app.projects) ? app.projects[0] : app.projects;
+      if (!proj?.duration_end_date || proj.status !== "in_progress") return false;
+      const endDate = new Date(proj.duration_end_date);
+      return endDate >= today && endDate <= ninetyDaysLater;
+    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .sort((a: any, b: any) => {
+      const aDate = Array.isArray(a.projects) ? a.projects[0]?.duration_end_date : a.projects?.duration_end_date;
+      const bDate = Array.isArray(b.projects) ? b.projects[0]?.duration_end_date : b.projects?.duration_end_date;
+      return new Date(aDate).getTime() - new Date(bDate).getTime();
+    })
+    .slice(0, 5);
 
   return {
     stats: {
@@ -73,7 +109,17 @@ async function getDashboardData() {
     recentUsers: recentUsersResult.data ?? [],
     recentApplications: recentApplicationsResult.data ?? [],
     recentAuditLogs: recentAuditResult.data ?? [],
+    availabilityMap,
+    expiringDevs,
   };
+}
+
+function calcDaysLeft(dateStr: string): number {
+  const end = new Date(dateStr);
+  end.setHours(0, 0, 0, 0);
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  return Math.ceil((end.getTime() - now.getTime()) / 86400000);
 }
 
 const ACTION_LABELS: Record<string, string> = {
@@ -102,7 +148,7 @@ const STATUS_BAR_COLORS: Record<string, string> = {
 };
 
 export default async function DashboardPage() {
-  const { stats, projectStatusCounts, recentUsers, recentApplications, recentAuditLogs } =
+  const { stats, projectStatusCounts, recentUsers, recentApplications, recentAuditLogs, availabilityMap, expiringDevs } =
     await getDashboardData();
 
   const statCards = [
@@ -177,27 +223,78 @@ export default async function DashboardPage() {
           })}
         </div>
 
-        {/* 사용자 현황 안내 배너 */}
-        <Card className="border-dashed border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-950/20">
-          <CardContent className="flex items-center justify-between py-4">
-            <div className="flex items-center gap-3">
-              <CalendarClock className="h-5 w-5 text-amber-500 shrink-0" />
-              <div>
-                <p className="text-sm font-medium">사용자 현황 위젯 준비 중</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  종료 임박 개발자 알림, 등급·스킬 필터는 DB 마이그레이션 후 활성화됩니다.
-                  <code className="ml-1 text-xs bg-muted px-1 py-0.5 rounded">profiles.grade, project_end_date</code> 필드 추가 필요
-                </p>
-              </div>
-            </div>
-            <Link
-              href="/users"
-              className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 hover:underline shrink-0 ml-4"
-            >
-              사용자 보기 <ArrowRight className="h-3 w-3" />
-            </Link>
-          </CardContent>
-        </Card>
+        {/* 사용자 현황 위젯 */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          {/* 투입 가능 현황 */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                투입 가능 현황
+              </CardTitle>
+              <Link href="/users" className="text-xs text-muted-foreground hover:underline flex items-center gap-1">
+                전체보기 <ArrowRight className="h-3 w-3" />
+              </Link>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[
+                { key: "available", label: "투입 가능", colorClass: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400" },
+                { key: "partial", label: "일부 가능", colorClass: "bg-amber-500/15 text-amber-700 dark:text-amber-400" },
+                { key: "unavailable", label: "투입 불가", colorClass: "bg-slate-500/15 text-slate-600 dark:text-slate-400" },
+              ].map(({ key, label, colorClass }) => (
+                <div key={key} className="flex items-center justify-between">
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${colorClass}`}>{label}</span>
+                  <span className="text-sm font-semibold tabular-nums">{availabilityMap[key] ?? 0}명</span>
+                </div>
+              ))}
+              {stats.activeUsers === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-1">활성 회원이 없습니다.</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* 프로젝트 종료 임박 개발자 */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <CalendarClock className="h-4 w-4 text-muted-foreground" />
+                프로젝트 종료 임박 <span className="text-xs font-normal text-muted-foreground">(3개월 이내)</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {expiringDevs.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">종료 임박 개발자가 없습니다.</p>
+              ) : (
+                <div className="space-y-3">
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  {expiringDevs.map((app: any) => {
+                    const profile = Array.isArray(app.profiles) ? app.profiles[0] : app.profiles;
+                    const proj = Array.isArray(app.projects) ? app.projects[0] : app.projects;
+                    const daysLeft = calcDaysLeft(proj.duration_end_date);
+                    const urgentClass = daysLeft <= 30
+                      ? "text-red-600 dark:text-red-400"
+                      : daysLeft <= 60
+                        ? "text-amber-600 dark:text-amber-400"
+                        : "text-muted-foreground";
+                    return (
+                      <div key={app.freelancer_id} className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <Link href={`/users/${profile?.id}`} className="text-sm font-medium hover:underline truncate block">
+                            {profile?.name ?? "알 수 없음"}
+                          </Link>
+                          <p className="text-xs text-muted-foreground truncate">{proj?.title}</p>
+                        </div>
+                        <span className={`text-xs font-semibold shrink-0 tabular-nums ${urgentClass}`}>
+                          D-{daysLeft}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* 메인 피드 그리드 */}
         <div className="grid gap-6 lg:grid-cols-2">
