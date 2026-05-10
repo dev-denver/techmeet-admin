@@ -1,12 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  // 환경변수 미설정 시 로그인으로 리다이렉트
   if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
     const pathname = request.nextUrl.pathname;
     if (pathname === "/login") return NextResponse.next();
@@ -39,7 +38,6 @@ export async function middleware(request: NextRequest) {
 
     const pathname = request.nextUrl.pathname;
 
-    // 로그인 페이지는 인증 불필요
     if (pathname === "/login") {
       if (user) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
@@ -47,12 +45,10 @@ export async function middleware(request: NextRequest) {
       return supabaseResponse;
     }
 
-    // 관리자 영역 — 미인증 시 로그인으로 리다이렉트
     if (!user) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
 
-    // admin_users 권한 확인 (service_role로 RLS 우회)
     const adminClient = createServerClient(supabaseUrl, supabaseServiceKey, {
       cookies: {
         getAll() {
@@ -76,7 +72,7 @@ export async function middleware(request: NextRequest) {
 
     return supabaseResponse;
   } catch (e) {
-    console.error("[middleware] error:", e);
+    console.error("[proxy] error:", e);
     const pathname = request.nextUrl.pathname;
     if (pathname === "/login") return NextResponse.next();
     return NextResponse.redirect(new URL("/login", request.url));
@@ -84,7 +80,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api/).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/).*)" ],
 };
