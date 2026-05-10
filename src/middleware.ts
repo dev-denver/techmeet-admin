@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -33,19 +33,18 @@ export async function proxy(request: NextRequest) {
 
   // 로그인 페이지는 인증 불필요
   if (pathname === "/login") {
-    // 이미 로그인된 경우 대시보드로
     if (user) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
     return supabaseResponse;
   }
 
-  // 관리자 영역 - 인증 확인
+  // 관리자 영역 — 미인증 시 로그인으로 리다이렉트
   if (!user) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // admin_users 테이블에서 관리자 권한 확인 (service_role 사용)
+  // admin_users 권한 확인 (service_role로 RLS 우회)
   const adminClient = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,

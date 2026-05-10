@@ -1,7 +1,18 @@
 "use client";
 
+import { useEffect } from "react";
 import { PageError } from "@/components/ui/page-error";
 
-export default function AdminError({ reset }: { reset: () => void }) {
+export default function AdminError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+    console.error("[AdminError]", error.message, error.digest ?? "");
+  }, [error]);
+
   return <PageError retry={reset} />;
 }

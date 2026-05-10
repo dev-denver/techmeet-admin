@@ -11,18 +11,29 @@ export default async function AdminRootLayout({
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
+    error: authError,
   } = await supabase.auth.getUser();
+
+  if (authError) {
+    console.error("[Layout] auth.getUser() error:", authError.message);
+    redirect("/login");
+  }
 
   if (!user) {
     redirect("/login");
   }
 
   const adminClient = createAdminClient();
-  const { data: adminUser } = await adminClient
+  const { data: adminUser, error: adminError } = await adminClient
     .from("admin_users")
     .select("name, role")
     .eq("auth_user_id", user.id)
     .single();
+
+  if (adminError) {
+    console.error("[Layout] admin_users query error:", adminError.message);
+    redirect("/login?error=server_error");
+  }
 
   if (!adminUser) {
     redirect("/login?error=unauthorized");

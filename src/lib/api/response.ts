@@ -28,6 +28,9 @@ export function apiError(
   code?: string,
   details?: Record<string, string[]>
 ) {
+  if (status >= 500) {
+    console.error(`[API Error] ${status} ${code ?? getDefaultCode(status)}: ${message}`, details ?? "");
+  }
   return NextResponse.json<ApiErrorResponse>(
     {
       success: false,
