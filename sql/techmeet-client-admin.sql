@@ -315,6 +315,7 @@ create table if not exists public.notices (
     check (notice_type in ('immediate', 'scheduled')),
   start_at     timestamptz,                                                                 -- 게시 시작 일시 (예약 공지)
   end_at       timestamptz,                                                                 -- 게시 종료 일시 (예약 공지)
+  attachments  jsonb       not null default '[]'::jsonb,                                    -- 첨부 파일 목록 (notice-files 스토리지 메타데이터 배열)
   created_by   uuid        references public.profiles(id) on delete set null,               -- 작성 관리자 프로필 ID
   seq_id       bigint      generated always as identity unique,                             -- Supabase Realtime 순서 관리 (자동)
   deleted_at   timestamptz,                                                                 -- soft delete 일시

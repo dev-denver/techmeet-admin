@@ -38,6 +38,25 @@ export async function PUT(
   const { id } = await params;
   const adminClient = createAdminClient();
 
+  // Remove storage files that were deleted from the attachment list
+  if (body.attachments !== undefined) {
+    const { data: existing } = await adminClient
+      .from("notices")
+      .select("attachments")
+      .eq("id", id)
+      .single();
+
+    if (existing?.attachments) {
+      type AttachmentRow = { path: string };
+      const oldPaths = (existing.attachments as AttachmentRow[]).map((a) => a.path);
+      const newPaths = (body.attachments as AttachmentRow[]).map((a) => a.path);
+      const removedPaths = oldPaths.filter((p) => !newPaths.includes(p));
+      if (removedPaths.length > 0) {
+        await adminClient.storage.from("notice-files").remove(removedPaths);
+      }
+    }
+  }
+
   const { data, error: dbError } = await adminClient
     .from("notices")
     .update({ ...body, updated_at: new Date().toISOString() })

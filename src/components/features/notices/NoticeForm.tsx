@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { FileSpreadsheet, FileText, File, X, Paperclip, Loader2 } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -26,7 +27,18 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import type { Notice } from "@/types";
+import type { Notice, NoticeAttachment } from "@/types";
+
+const ALLOWED_MIME_TYPES = [
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-excel",
+  "text/csv",
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+const MAX_FILE_SIZE = 20 * 1024 * 1024;
+const MAX_FILE_COUNT = 5;
 
 const noticeSchema = z.object({
   title: z.string().min(1, "제목을 입력해주세요"),
@@ -44,6 +56,28 @@ interface NoticeFormProps {
   notice?: Notice;
 }
 
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function FileIcon({ mimeType }: { mimeType: string }) {
+  if (
+    mimeType.includes("spreadsheet") ||
+    mimeType.includes("excel") ||
+    mimeType === "text/csv"
+  ) {
+    return <FileSpreadsheet className="h-4 w-4 text-green-600 shrink-0" />;
+  }
+  if (mimeType === "application/pdf") {
+    return <FileText className="h-4 w-4 text-red-500 shrink-0" />;
+  }
+  if (mimeType.includes("word")) {
+    return <FileText className="h-4 w-4 text-blue-500 shrink-0" />;
+  }
+  return <File className="h-4 w-4 text-muted-foreground shrink-0" />;
+}
+
 export function NoticeForm({ notice }: NoticeFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +85,12 @@ export function NoticeForm({ notice }: NoticeFormProps) {
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [restoring, setRestoring] = useState(false);
+  const [attachments, setAttachments] = useState<NoticeAttachment[]>(
+    notice?.attachments ?? []
+  );
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const isEdit = !!notice;
   const isDeleted = !!notice?.deleted_at;
 
@@ -67,6 +107,61 @@ export function NoticeForm({ notice }: NoticeFormProps) {
     },
   });
 
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (files.length === 0) return;
+
+    setUploadError(null);
+
+    if (attachments.length + files.length > MAX_FILE_COUNT) {
+      setUploadError(`파일은 최대 ${MAX_FILE_COUNT}개까지 첨부할 수 있습니다.`);
+      return;
+    }
+
+    for (const file of files) {
+      if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+        setUploadError(`"${file.name}": 허용되지 않는 파일 형식입니다.`);
+        return;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        setUploadError(`"${file.name}": 파일 크기는 20MB 이하여야 합니다.`);
+        return;
+      }
+    }
+
+    setUploading(true);
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/notices/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setUploadError(data.error?.message ?? "파일 업로드에 실패했습니다.");
+        setUploading(false);
+        return;
+      }
+
+      const data = await res.json();
+      setAttachments((prev) => [...prev, data.data as NoticeAttachment]);
+    }
+    setUploading(false);
+  }
+
+  async function handleRemoveAttachment(attachment: NoticeAttachment) {
+    await fetch("/api/notices/upload", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path: attachment.path }),
+    });
+    setAttachments((prev) => prev.filter((a) => a.id !== attachment.id));
+  }
+
   async function onSubmit(values: NoticeFormSchema) {
     setError(null);
     const url = isEdit ? `/api/notices/${notice.id}` : "/api/notices";
@@ -75,7 +170,7 @@ export function NoticeForm({ notice }: NoticeFormProps) {
     const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
+      body: JSON.stringify({ ...values, attachments }),
     });
 
     if (!res.ok) {
@@ -282,6 +377,88 @@ export function NoticeForm({ notice }: NoticeFormProps) {
             </Card>
           )}
 
+          {/* 첨부 파일 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">첨부 파일</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept=".xlsx,.xls,.csv,.pdf,.doc,.docx"
+                multiple
+                onChange={handleFileChange}
+                disabled={uploading || isDeleted}
+              />
+
+              {attachments.length > 0 && (
+                <ul className="space-y-2">
+                  {attachments.map((att) => (
+                    <li
+                      key={att.id}
+                      className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm"
+                    >
+                      <FileIcon mimeType={att.type} />
+                      <a
+                        href={att.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 truncate hover:underline"
+                      >
+                        {att.name}
+                      </a>
+                      <span className="text-muted-foreground shrink-0">
+                        {formatFileSize(att.size)}
+                      </span>
+                      {!isDeleted && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAttachment(att)}
+                          className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
+                          aria-label="파일 삭제"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {!isDeleted && attachments.length < MAX_FILE_COUNT && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      업로드 중...
+                    </>
+                  ) : (
+                    <>
+                      <Paperclip className="h-4 w-4 mr-2" />
+                      파일 첨부
+                    </>
+                  )}
+                </Button>
+              )}
+
+              <p className="text-xs text-muted-foreground">
+                xlsx, xls, csv, pdf, doc, docx · 최대 20MB · 최대 {MAX_FILE_COUNT}개
+              </p>
+
+              {uploadError && (
+                <p className="text-sm text-destructive">{uploadError}</p>
+              )}
+            </CardContent>
+          </Card>
+
           {error && <p className="text-sm text-destructive">{error}</p>}
 
           <div className="flex items-center gap-3">
@@ -303,7 +480,7 @@ export function NoticeForm({ notice }: NoticeFormProps) {
                 복구
               </Button>
             )}
-            <Button type="submit" disabled={form.formState.isSubmitting || isDeleted}>
+            <Button type="submit" disabled={form.formState.isSubmitting || isDeleted || uploading}>
               {form.formState.isSubmitting ? "저장 중..." : isEdit ? "수정" : "등록"}
             </Button>
             <Button

@@ -60,6 +60,16 @@ export const applicationUpdateSchema = z.object({
 export type ApplicationUpdateInput = z.infer<typeof applicationUpdateSchema>;
 
 // ── Notices ──
+const noticeAttachmentSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  size: z.number(),
+  type: z.string(),
+  url: z.string(),
+  path: z.string(),
+  uploaded_at: z.string(),
+});
+
 export const noticeCreateSchema = z.object({
   title: z.string().min(1, "제목을 입력해주세요.").max(200, "제목은 200자 이내로 입력해주세요."),
   content: z.string().min(1, "내용을 입력해주세요."),
@@ -68,6 +78,7 @@ export const noticeCreateSchema = z.object({
   notice_type: z.enum(["immediate", "scheduled"]),
   start_at: z.string().nullable(),
   end_at: z.string().nullable(),
+  attachments: z.array(noticeAttachmentSchema).default([]),
 });
 
 export const noticeUpdateSchema = noticeCreateSchema.partial();

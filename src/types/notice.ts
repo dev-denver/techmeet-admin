@@ -1,5 +1,15 @@
 import type { NoticeType } from "@/lib/constants/status";
 
+export interface NoticeAttachment {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  url: string;
+  path: string;
+  uploaded_at: string;
+}
+
 export interface Notice {
   id: string;
   seq_id: number;
@@ -10,6 +20,7 @@ export interface Notice {
   notice_type: NoticeType;
   start_at: string | null;
   end_at: string | null;
+  attachments: NoticeAttachment[];
   deleted_at: string | null;
   created_at: string;
   updated_at: string;
