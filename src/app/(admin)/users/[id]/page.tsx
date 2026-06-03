@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Header } from "@/components/layout/Header";
 import { UserForm } from "@/components/features/users/UserForm";
+import { UserResumes } from "@/components/features/users/UserResumes";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
@@ -64,6 +65,7 @@ export default async function UserDetailPage({
             <TabsTrigger value="applications">
               지원 이력 ({applications.length})
             </TabsTrigger>
+            <TabsTrigger value="resumes">이력서</TabsTrigger>
           </TabsList>
 
           <TabsContent value="info" className="max-w-2xl">
@@ -131,6 +133,10 @@ export default async function UserDetailPage({
                 </TableBody>
               </Table>
             </div>
+          </TabsContent>
+
+          <TabsContent value="resumes" className="max-w-2xl">
+            <UserResumes userId={id} />
           </TabsContent>
         </Tabs>
       </main>
