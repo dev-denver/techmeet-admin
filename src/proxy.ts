@@ -1,6 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const ADMIN_CACHE_TTL = 5 * 60; // 5분 (초)
+
 export async function proxy(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -33,8 +35,9 @@ export async function proxy(request: NextRequest) {
     });
 
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user = session?.user ?? null;
 
     const pathname = request.nextUrl.pathname;
 
@@ -49,25 +52,49 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
 
-    const adminClient = createServerClient(supabaseUrl, supabaseServiceKey, {
-      cookies: {
-        getAll() {
-          return [];
+    // admin_users DB 조회 결과를 쿠키에 단기 캐싱 (매 요청 DB 쿼리 방지)
+    const cached = request.cookies.get("__admin_ok")?.value;
+    let adminVerified = false;
+
+    if (cached) {
+      const [cachedUserId, cachedTs] = cached.split(":");
+      const now = Math.floor(Date.now() / 1000);
+      const ts = parseInt(cachedTs, 10);
+      if (cachedUserId === user.id && !isNaN(ts) && now - ts < ADMIN_CACHE_TTL) {
+        adminVerified = true;
+      }
+    }
+
+    if (!adminVerified) {
+      const adminClient = createServerClient(supabaseUrl, supabaseServiceKey, {
+        cookies: {
+          getAll() {
+            return [];
+          },
+          setAll() {},
         },
-        setAll() {},
-      },
-    });
+      });
 
-    const { data: adminUser } = await adminClient
-      .from("admin_users")
-      .select("id")
-      .eq("auth_user_id", user.id)
-      .single();
+      const { data: adminUser } = await adminClient
+        .from("admin_users")
+        .select("id")
+        .eq("auth_user_id", user.id)
+        .single();
 
-    if (!adminUser) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("error", "unauthorized");
-      return NextResponse.redirect(loginUrl);
+      if (!adminUser) {
+        const loginUrl = new URL("/login", request.url);
+        loginUrl.searchParams.set("error", "unauthorized");
+        return NextResponse.redirect(loginUrl);
+      }
+
+      const now = Math.floor(Date.now() / 1000);
+      supabaseResponse.cookies.set("__admin_ok", `${user.id}:${now}`, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: ADMIN_CACHE_TTL,
+        path: "/",
+      });
     }
 
     return supabaseResponse;

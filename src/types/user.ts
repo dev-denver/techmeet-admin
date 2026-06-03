@@ -37,6 +37,16 @@ export interface ProfileListItem {
   application_count?: number;
 }
 
+export interface ProfileResume {
+  id: string;
+  profile_id: string;
+  file_name: string;
+  file_path: string;
+  file_size: number;
+  mime_type: string;
+  created_at: string;
+}
+
 export interface ProfileFormValues {
   name: string;
   phone: string | null;
