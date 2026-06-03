@@ -389,12 +389,39 @@ create trigger applications_updated_at
   for each row execute function public.set_updated_at();
 
 
+-- ------------------------------------------------------------
+-- 9. profile_resumes (이력서 파일) [CLIENT]
+-- ------------------------------------------------------------
+create table if not exists public.profile_resumes (
+  id          uuid        default gen_random_uuid() primary key,
+  profile_id  uuid        not null references public.profiles(id) on delete cascade,
+  file_name   text        not null,
+  file_path   text        not null,
+  file_size   bigint      not null,
+  mime_type   text        not null,
+  created_at  timestamptz not null default now()
+);
+
+alter table public.profile_resumes enable row level security;
+
+create policy "본인 이력서 조회" on public.profile_resumes
+  for select using (profile_id = auth.uid());
+
+create policy "본인 이력서 추가" on public.profile_resumes
+  for insert with check (profile_id = auth.uid());
+
+create policy "본인 이력서 삭제" on public.profile_resumes
+  for delete using (profile_id = auth.uid());
+
+create index if not exists idx_profile_resumes_profile_id on public.profile_resumes(profile_id);
+
+
 -- ============================================================
 -- [ADMIN] 관리자 전용 테이블 (service_role 전용 — RLS 활성화 + 정책 없음)
 -- ============================================================
 
 -- ------------------------------------------------------------
--- 9. admin_users (관리자 계정)
+-- 10. admin_users (관리자 계정)
 -- ------------------------------------------------------------
 -- profiles와 달리 별도 UUID PK + auth_user_id FK 구조 유지
 -- (관리자 계정은 프리랜서 profiles와 완전히 분리)
@@ -536,6 +563,9 @@ create index if not exists projects_deleted_at_idx          on public.projects(d
 create index if not exists idx_notices_created_at           on public.notices(created_at desc);
 create index if not exists idx_notices_is_published         on public.notices(is_published);
 
+-- [CLIENT] profile_resumes
+create index if not exists idx_profile_resumes_profile_id   on public.profile_resumes(profile_id);
+
 -- [ADMIN] alimtalk_templates
 create index if not exists idx_alimtalk_templates_code         on public.alimtalk_templates(code);
 create index if not exists idx_alimtalk_templates_service_type on public.alimtalk_templates(service_type);
@@ -554,6 +584,34 @@ create index if not exists idx_audit_logs_created_at        on public.admin_audi
 create index if not exists idx_audit_logs_admin_id          on public.admin_audit_logs(admin_id);
 create index if not exists idx_audit_logs_resource          on public.admin_audit_logs(resource);
 create index if not exists idx_audit_logs_action            on public.admin_audit_logs(action);
+
+
+-- ============================================================
+-- Storage 버킷
+-- ============================================================
+
+-- resumes (이력서 파일, 비공개)
+insert into storage.buckets (id, name, public)
+  values ('resumes', 'resumes', false)
+  on conflict do nothing;
+
+create policy "본인 이력서 업로드" on storage.objects
+  for insert with check (
+    bucket_id = 'resumes'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "본인 이력서 다운로드" on storage.objects
+  for select using (
+    bucket_id = 'resumes'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "본인 이력서 삭제" on storage.objects
+  for delete using (
+    bucket_id = 'resumes'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
 
 
 -- ============================================================
