@@ -4,6 +4,7 @@
  *
  * 삽입 대상:
  *   - profiles (auth.users 포함) 30건
+ *   - 추천인 관계 12건 (referrer_id 설정)
  *   - projects 30건
  *   - notices 30건
  */
@@ -215,11 +216,85 @@ async function seedUsers() {
 }
 
 // ──────────────────────────────────────────────────────────────
-// 2. 프로젝트 30건
+// 2. 추천인 관계 설정
+// ──────────────────────────────────────────────────────────────
+
+// [추천인 이메일, 피추천인 이메일]
+const REFERRALS = [
+  // 김민준(React 5yr) → 배소영, 공현석 (React 계열 후배)
+  ["minjun.kim@techmeet.dev", "soyoung.bae@techmeet.dev"],
+  ["minjun.kim@techmeet.dev", "hyunseok.kong@techmeet.dev"],
+  // 임태양(DevOps 8yr) → 오준혁, 표재훈 (인프라/DevOps 계열)
+  ["taeyang.im@techmeet.dev", "junhyuk.oh@techmeet.dev"],
+  ["taeyang.im@techmeet.dev", "jaehoon.pyo@techmeet.dev"],
+  // 박도현(Java 7yr) → 권성민, 홍민성 (JVM 계열)
+  ["dohyun.park@techmeet.dev", "sungmin.kwon@techmeet.dev"],
+  ["dohyun.park@techmeet.dev", "minsung.hong@techmeet.dev"],
+  // 나유진(Python ML 5yr) → 안지현, 장민호 (데이터 계열)
+  ["yujin.na@techmeet.dev", "jihyun.ahn@techmeet.dev"],
+  ["yujin.na@techmeet.dev", "minho.jang@techmeet.dev"],
+  // 강하은(iOS 6yr) → 민서아 (iOS 계열)
+  ["haeun.kang@techmeet.dev", "seoa.min@techmeet.dev"],
+  // 성준영(Scala 9yr) → 류태민 (시스템 프로그래밍)
+  ["junyoung.sung@techmeet.dev", "taemin.ryu@techmeet.dev"],
+  // 이서연(Vue 3yr) → 노은지, 채수빈 (프론트엔드 계열)
+  ["seoyeon.lee@techmeet.dev", "eunji.no@techmeet.dev"],
+  ["seoyeon.lee@techmeet.dev", "subin.chae@techmeet.dev"],
+];
+
+async function seedReferrers() {
+  console.log("\n[2/4] 추천인 관계 12건 설정 중...");
+
+  const emails = USERS.map((u) => u.email);
+  const { data: profiles, error } = await admin
+    .from("profiles")
+    .select("id, email")
+    .in("email", emails);
+
+  if (error || !profiles?.length) {
+    console.error("  [ERROR] profiles 조회 실패:", error?.message ?? "데이터 없음");
+    return;
+  }
+
+  const idByEmail = Object.fromEntries(profiles.map((p) => [p.email, p.id]));
+
+  let updated = 0;
+  let skipped = 0;
+
+  for (const [referrerEmail, referredEmail] of REFERRALS) {
+    const referrerId = idByEmail[referrerEmail];
+    const referredId = idByEmail[referredEmail];
+
+    if (!referrerId || !referredId) {
+      console.warn(`  [WARN] 매핑 실패: ${referrerEmail} → ${referredEmail}`);
+      skipped++;
+      continue;
+    }
+
+    const { error: updateError } = await admin
+      .from("profiles")
+      .update({ referrer_id: referrerId })
+      .eq("id", referredId);
+
+    if (updateError) {
+      console.warn(`  [WARN] 업데이트 실패 (${referredEmail}): ${updateError.message}`);
+      skipped++;
+    } else {
+      updated++;
+    }
+  }
+
+  const referrerCount = new Set(REFERRALS.map((r) => r[0])).size;
+  console.log(`  ✓ 추천 관계 ${updated}건 설정 완료 (실패: ${skipped}건)`);
+  console.log(`  - 추천인 ${referrerCount}명 / 피추천인 ${updated}명`);
+}
+
+// ──────────────────────────────────────────────────────────────
+// 3. 프로젝트 30건
 // ──────────────────────────────────────────────────────────────
 
 async function seedProjects() {
-  console.log("\n[2/3] 프로젝트 30건 삽입 중...");
+  console.log("\n[3/4] 프로젝트 30건 삽입 중...");
 
   const rows = PROJECTS.map((p, i) => {
     const startDate = randomDate(new Date("2025-01-01"), new Date("2025-12-01"));
@@ -262,11 +337,11 @@ async function seedProjects() {
 }
 
 // ──────────────────────────────────────────────────────────────
-// 3. 공지사항 30건
+// 4. 공지사항 30건
 // ──────────────────────────────────────────────────────────────
 
 async function seedNotices() {
-  console.log("\n[3/3] 공지사항 30건 삽입 중...");
+  console.log("\n[4/4] 공지사항 30건 삽입 중...");
 
   const rows = NOTICES.map((n) => ({
     title: n.title,
@@ -298,6 +373,7 @@ async function main() {
   console.log(`  Supabase: ${SUPABASE_URL}`);
 
   await seedUsers();
+  await seedReferrers();
   await seedProjects();
   await seedNotices();
 
