@@ -42,9 +42,9 @@ export async function POST(request: NextRequest) {
   }
 
   const fileId = crypto.randomUUID();
-  // Keep only safe characters in filename
-  const safeName = file.name.replace(/[^\w가-힣.\-]/g, "_");
-  const path = `notices/${fileId}/${safeName}`;
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+  const storageName = ext ? `${fileId}.${ext}` : fileId;
+  const path = `notices/${storageName}`;
 
   const arrayBuffer = await file.arrayBuffer();
   const buffer = new Uint8Array(arrayBuffer);
