@@ -98,7 +98,7 @@ export function ApplicationDetail({ application }: { application: any }) {
             </div>
           </div>
           <div>
-            <span className="text-muted-foreground">희망 요율</span>
+            <span className="text-muted-foreground">희망 금액</span>
             <p className="font-medium">{formatBudget(application.expected_rate)}</p>
           </div>
           <div>

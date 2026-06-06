@@ -32,7 +32,7 @@ const EXPORT_CONFIGS: Record<string, {
   applications: {
     table: "applications",
     select: "seq_id, status, expected_rate, applied_at, project:projects(title), profile:profiles!freelancer_id(name, email)",
-    headers: ["#ID", "프로젝트", "지원자", "이메일", "상태", "희망요율", "지원일"],
+    headers: ["#ID", "프로젝트", "지원자", "이메일", "상태", "희망 금액", "지원일"],
     mapRow: (r) => {
       const project = Array.isArray(r.project) ? (r.project as Record<string, unknown>[])[0] : r.project as Record<string, unknown> | null;
       const profile = Array.isArray(r.profile) ? (r.profile as Record<string, unknown>[])[0] : r.profile as Record<string, unknown> | null;
