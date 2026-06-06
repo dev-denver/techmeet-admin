@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { formatDate, formatPhone } from "@/lib/utils/format";
 import type { AdminUser } from "@/types";
 
@@ -39,10 +40,13 @@ export function AdminList({ admins, currentAdminId }: AdminListProps) {
 
     if (!res.ok) {
       const data = await res.json();
-      setError(data.error?.message ?? "삭제에 실패했습니다.");
+      const message = data.error?.message ?? "삭제에 실패했습니다.";
+      setError(message);
+      toast.error(message);
       return;
     }
 
+    toast.success("관리자가 삭제되었습니다.");
     setDeleteTarget(null);
     router.refresh();
   }

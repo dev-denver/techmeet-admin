@@ -25,6 +25,7 @@ import {
 import { APPLICATION_STATUS } from "@/lib/constants/status";
 import { formatBudget, formatDateTime } from "@/lib/utils/format";
 import type { ApplicationStatus } from "@/lib/constants/status";
+import { toast } from "sonner";
 
 const statusSchema = z.object({
   status: z.enum(["pending", "reviewing", "interview", "accepted", "rejected", "withdrawn"]),
@@ -61,10 +62,13 @@ export function ApplicationDetail({ application }: { application: any }) {
 
     if (!res.ok) {
       const data = await res.json();
-      setError(data.error?.message ?? "저장에 실패했습니다.");
+      const message = data.error?.message ?? "저장에 실패했습니다.";
+      setError(message);
+      toast.error(message);
       return;
     }
 
+    toast.success("상태가 변경되었습니다.");
     router.refresh();
   }
 
@@ -75,7 +79,7 @@ export function ApplicationDetail({ application }: { application: any }) {
       {/* 기본 정보 */}
       <div className="rounded-lg border p-4 space-y-4">
         <h2 className="font-semibold">기본 정보</h2>
-        <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
           <div>
             <span className="text-muted-foreground">프로젝트</span>
             <p className="font-medium">{project?.title ?? "-"}</p>

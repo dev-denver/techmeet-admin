@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
 import type { AlimtalkTemplate } from "@/types";
 
 const templateSchema = z.object({
@@ -83,10 +84,13 @@ export function AlimtalkTemplateForm({ template }: Props) {
 
     if (!res.ok) {
       const data = await res.json();
-      setError(data.error?.message ?? "저장에 실패했습니다.");
+      const message = data.error?.message ?? "저장에 실패했습니다.";
+      setError(message);
+      toast.error(message);
       return;
     }
 
+    toast.success(isEdit ? "수정되었습니다." : "등록되었습니다.");
     router.push("/alimtalk/templates");
     router.refresh();
   }
@@ -99,11 +103,14 @@ export function AlimtalkTemplateForm({ template }: Props) {
 
     if (!res.ok) {
       const data = await res.json();
-      setError(data.error?.message ?? "삭제에 실패했습니다.");
+      const message = data.error?.message ?? "삭제에 실패했습니다.";
+      setError(message);
+      toast.error(message);
       setDeleteOpen(false);
       return;
     }
 
+    toast.success("삭제되었습니다.");
     router.push("/alimtalk/templates");
     router.refresh();
   }
@@ -112,7 +119,7 @@ export function AlimtalkTemplateForm({ template }: Props) {
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField
               control={form.control}
               name="code"
@@ -147,7 +154,7 @@ export function AlimtalkTemplateForm({ template }: Props) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField
               control={form.control}
               name="service_type"

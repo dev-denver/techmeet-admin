@@ -100,7 +100,7 @@ export function UserForm({ user }: UserFormProps) {
     <div className="space-y-6">
       {/* 읽기 전용 정보 */}
       <div className="rounded-lg border p-4 space-y-2 bg-muted/30">
-        <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 text-sm">
           <div>
             <span className="text-muted-foreground">이메일</span>
             <p className="font-medium">{user.email}</p>
@@ -120,7 +120,7 @@ export function UserForm({ user }: UserFormProps) {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField
               control={form.control}
               name="name"
@@ -172,7 +172,7 @@ export function UserForm({ user }: UserFormProps) {
             )}
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField
               control={form.control}
               name="experience_years"
