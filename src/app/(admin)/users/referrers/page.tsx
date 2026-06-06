@@ -375,8 +375,8 @@ export default async function ReferrersPage({ searchParams }: Props) {
               </span>
             </div>
 
-            {/* 목록 테이블 */}
-            <div className="rounded-md border">
+            {/* 목록 테이블 (데스크탑) */}
+            <div className="hidden rounded-md border md:block">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -480,6 +480,72 @@ export default async function ReferrersPage({ searchParams }: Props) {
                   )}
                 </TableBody>
               </Table>
+            </div>
+
+            {/* 모바일: 카드 리스트 */}
+            <div className="space-y-2 md:hidden">
+              {users.length === 0 ? (
+                <EmptyState title="추천 가입 내역이 없습니다." />
+              ) : (
+                users.map((user) => {
+                  const referrer = user.referrer ?? null;
+                  const userWithdrawn = user.account_status === "withdrawn";
+                  const referrerWithdrawn = referrer?.account_status === "withdrawn";
+                  return (
+                    <div
+                      key={user.id}
+                      className={cn("rounded-md border p-3", userWithdrawn && "opacity-60")}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <Link
+                            href={`/users/${user.id}`}
+                            className={cn(
+                              "font-medium hover:underline",
+                              userWithdrawn && "line-through text-muted-foreground"
+                            )}
+                          >
+                            {user.name ?? "-"}
+                          </Link>
+                          {userWithdrawn && (
+                            <Badge
+                              variant="outline"
+                              className="h-4 px-1 py-0 text-xs leading-none text-muted-foreground"
+                            >
+                              탈퇴
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="font-mono text-xs text-muted-foreground">
+                          #{user.seq_id}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-sm text-muted-foreground">
+                        {user.email ?? "-"}
+                      </p>
+                      <div className="mt-2 border-t pt-2 text-xs text-muted-foreground">
+                        추천인:{" "}
+                        {referrer ? (
+                          <Link
+                            href={`/users/${referrer.id}`}
+                            className={cn(
+                              "hover:underline",
+                              referrerWithdrawn && "line-through"
+                            )}
+                          >
+                            {referrer.name ?? "-"} ({referrer.email ?? "-"})
+                          </Link>
+                        ) : (
+                          "-"
+                        )}
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {formatDate(user.created_at)}
+                      </p>
+                    </div>
+                  );
+                })
+              )}
             </div>
 
             <Suspense>
