@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const ADMIN_CACHE_TTL = 5 * 60; // 5분 (초)
+const ADMIN_CACHE_TTL = 120; // 2분 (초) — 권한 회수 즉시성과 DB 조회 빈도의 균형
 
 export async function proxy(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -35,9 +35,8 @@ export async function proxy(request: NextRequest) {
     });
 
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    const user = session?.user ?? null;
+      data: { user },
+    } = await supabase.auth.getUser();
 
     const pathname = request.nextUrl.pathname;
 

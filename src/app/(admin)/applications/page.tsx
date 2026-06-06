@@ -3,20 +3,19 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { Header } from "@/components/layout/Header";
 import { ListFilter } from "@/components/ui/list-filter";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { parsePageParams, PAGE_SIZE_OPTIONS } from "@/lib/utils/pagination";
 import { ApplicationsTable } from "@/components/features/applications/ApplicationsTable";
 import { APPLICATION_STATUS } from "@/lib/constants/status";
 
 const PAGE_SIZE = 20;
 
 interface Props {
-  searchParams: Promise<{ q?: string; status?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; page?: string; pageSize?: string }>;
 }
 
-async function getApplications(params: { q?: string; status?: string; page?: string }) {
+async function getApplications(params: { q?: string; status?: string; page?: string; pageSize?: string }) {
   const adminClient = createAdminClient();
-  const page = Number(params.page ?? "1");
-  const from = (page - 1) * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
+  const { pageSize, from, to } = parsePageParams(params, PAGE_SIZE);
 
   let query = adminClient
     .from("applications")
@@ -34,12 +33,12 @@ async function getApplications(params: { q?: string; status?: string; page?: str
     .order("applied_at", { ascending: false })
     .range(from, to);
 
-  return { applications: data ?? [], total: count ?? 0 };
+  return { applications: data ?? [], total: count ?? 0, pageSize };
 }
 
 export default async function ApplicationsPage({ searchParams }: Props) {
   const params = await searchParams;
-  const { applications, total } = await getApplications(params);
+  const { applications, total, pageSize } = await getApplications(params);
 
   return (
     <>
@@ -66,7 +65,7 @@ export default async function ApplicationsPage({ searchParams }: Props) {
         <ApplicationsTable applications={applications} />
 
         <Suspense>
-          <PaginationControls total={total} pageSize={PAGE_SIZE} />
+          <PaginationControls total={total} pageSize={pageSize} pageSizeOptions={PAGE_SIZE_OPTIONS} />
         </Suspense>
       </main>
     </>

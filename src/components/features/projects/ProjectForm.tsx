@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PROJECT_STATUS } from "@/lib/constants/status";
+import { toast } from "sonner";
 import type { Project } from "@/types";
 
 function getTodayString() {
@@ -109,10 +110,13 @@ export function ProjectForm({ project }: ProjectFormProps) {
 
     if (!res.ok) {
       const data = await res.json();
-      setError(data.error?.message ?? "저장에 실패했습니다.");
+      const message = data.error?.message ?? "저장에 실패했습니다.";
+      setError(message);
+      toast.error(message);
       return;
     }
 
+    toast.success(isEdit ? "수정되었습니다." : "등록되었습니다.");
     router.push("/projects");
     router.refresh();
   }
@@ -123,8 +127,11 @@ export function ProjectForm({ project }: ProjectFormProps) {
     const res = await fetch(`/api/projects/${project.id}`, { method: "DELETE" });
     setDeleting(false);
     if (res.ok) {
+      toast.success("삭제되었습니다.");
       router.push("/projects");
       router.refresh();
+    } else {
+      toast.error("삭제에 실패했습니다.");
     }
   }
 
@@ -134,8 +141,11 @@ export function ProjectForm({ project }: ProjectFormProps) {
     const res = await fetch(`/api/projects/${project.id}/restore`, { method: "PATCH" });
     setRestoring(false);
     if (res.ok) {
+      toast.success("복구되었습니다.");
       router.push("/projects");
       router.refresh();
+    } else {
+      toast.error("복구에 실패했습니다.");
     }
   }
 
@@ -191,7 +201,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
               <CardTitle className="text-base">프로젝트 설정</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="status"
@@ -239,7 +249,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="duration_start_date"

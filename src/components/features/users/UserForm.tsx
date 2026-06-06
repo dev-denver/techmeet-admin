@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 import { ACCOUNT_STATUS } from "@/lib/constants/status";
 import { formatDateTime } from "@/lib/utils/format";
 import type { Profile } from "@/types";
@@ -85,10 +86,13 @@ export function UserForm({ user }: UserFormProps) {
 
     if (!res.ok) {
       const data = await res.json();
-      setError(data.error?.message ?? "저장에 실패했습니다.");
+      const message = data.error?.message ?? "저장에 실패했습니다.";
+      setError(message);
+      toast.error(message);
       return;
     }
 
+    toast.success("변경사항이 저장되었습니다.");
     router.refresh();
   }
 
@@ -96,7 +100,7 @@ export function UserForm({ user }: UserFormProps) {
     <div className="space-y-6">
       {/* 읽기 전용 정보 */}
       <div className="rounded-lg border p-4 space-y-2 bg-muted/30">
-        <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 text-sm">
           <div>
             <span className="text-muted-foreground">이메일</span>
             <p className="font-medium">{user.email}</p>
@@ -116,7 +120,7 @@ export function UserForm({ user }: UserFormProps) {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField
               control={form.control}
               name="name"
@@ -168,7 +172,7 @@ export function UserForm({ user }: UserFormProps) {
             )}
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <FormField
               control={form.control}
               name="experience_years"

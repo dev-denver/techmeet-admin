@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { ListFilter } from "@/components/ui/list-filter";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { parsePageParams, PAGE_SIZE_OPTIONS } from "@/lib/utils/pagination";
 import { formatDate } from "@/lib/utils/format";
 import { Plus } from "lucide-react";
 import type { NoticeListItem } from "@/types";
@@ -22,14 +23,12 @@ import type { NoticeListItem } from "@/types";
 const PAGE_SIZE = 20;
 
 interface Props {
-  searchParams: Promise<{ q?: string; published?: string; page?: string; deleted?: string }>;
+  searchParams: Promise<{ q?: string; published?: string; page?: string; deleted?: string; pageSize?: string }>;
 }
 
-async function getNotices(params: { q?: string; published?: string; page?: string; deleted?: string }) {
+async function getNotices(params: { q?: string; published?: string; page?: string; deleted?: string; pageSize?: string }) {
   const adminClient = createAdminClient();
-  const page = Number(params.page ?? "1");
-  const from = (page - 1) * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
+  const { pageSize, from, to } = parsePageParams(params, PAGE_SIZE);
   const showDeleted = params.deleted === "true";
 
   let query = adminClient
@@ -55,12 +54,12 @@ async function getNotices(params: { q?: string; published?: string; page?: strin
     .order("created_at", { ascending: false })
     .range(from, to);
 
-  return { notices: (data ?? []) as NoticeListItem[], total: count ?? 0, showDeleted };
+  return { notices: (data ?? []) as NoticeListItem[], total: count ?? 0, showDeleted, pageSize };
 }
 
 export default async function NoticesPage({ searchParams }: Props) {
   const params = await searchParams;
-  const { notices, total, showDeleted } = await getNotices(params);
+  const { notices, total, showDeleted, pageSize } = await getNotices(params);
 
   return (
     <>
@@ -101,7 +100,8 @@ export default async function NoticesPage({ searchParams }: Props) {
           </p>
         )}
 
-        <div className="rounded-md border">
+        {/* 데스크탑: 테이블 */}
+        <div className="hidden rounded-md border md:block">
           <Table>
             <TableHeader>
               <TableRow>
@@ -163,8 +163,43 @@ export default async function NoticesPage({ searchParams }: Props) {
           </Table>
         </div>
 
+        {/* 모바일: 카드 리스트 */}
+        <div className="space-y-2 md:hidden">
+          {notices.length === 0 ? (
+            <EmptyState title="공지사항이 없습니다." />
+          ) : (
+            notices.map((notice) => (
+              <Link
+                key={notice.id}
+                href={`/notices/${notice.id}`}
+                className="block rounded-md border p-3 active:bg-muted/50"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <span className="font-medium">{notice.title}</span>
+                  <div className="flex shrink-0 gap-1">
+                    {notice.is_important && <Badge variant="destructive">중요</Badge>}
+                    <Badge variant={notice.is_published ? "default" : "secondary"}>
+                      {notice.is_published ? "게시중" : "미게시"}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                  <span className="font-mono">#{notice.seq_id}</span>
+                  <span>{notice.notice_type === "immediate" ? "즉시" : "예약"}</span>
+                  {(notice.start_at || notice.end_at) && (
+                    <span>
+                      {formatDate(notice.start_at)} ~ {formatDate(notice.end_at)}
+                    </span>
+                  )}
+                  <span>{formatDate(notice.created_at)}</span>
+                </div>
+              </Link>
+            ))
+          )}
+        </div>
+
         <Suspense>
-          <PaginationControls total={total} pageSize={PAGE_SIZE} />
+          <PaginationControls total={total} pageSize={pageSize} pageSizeOptions={PAGE_SIZE_OPTIONS} />
         </Suspense>
       </main>
     </>

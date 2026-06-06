@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 
 const adminSchema = z
   .object({
@@ -75,10 +76,13 @@ export function AdminForm() {
 
     if (!res.ok) {
       const data = await res.json();
-      setError(data.error?.message ?? "등록에 실패했습니다.");
+      const message = data.error?.message ?? "등록에 실패했습니다.";
+      setError(message);
+      toast.error(message);
       return;
     }
 
+    toast.success("관리자가 등록되었습니다.");
     router.push("/admins");
     router.refresh();
   }

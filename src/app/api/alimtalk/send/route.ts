@@ -3,9 +3,10 @@ import { verifyAdmin } from "@/lib/api/verify-admin";
 import { apiSuccess, apiError, apiDbError, parseBody } from "@/lib/api/response";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { alimtalkSendSchema } from "@/lib/api/schemas";
+import { logAudit } from "@/lib/api/audit";
 
 export async function POST(request: NextRequest) {
-  const { error } = await verifyAdmin();
+  const { error, adminUser } = await verifyAdmin();
   if (error) return error;
 
   const { data: body, error: parseError } = await parseBody(request, alimtalkSendSchema);
@@ -71,6 +72,23 @@ export async function POST(request: NextRequest) {
       if (dbError) return apiDbError(dbError.message);
     }
   }
+
+  await logAudit({
+    adminId: adminUser!.id,
+    adminName: adminUser!.name,
+    action: "create",
+    resource: "alimtalk",
+    resourceId: template_id,
+    details: {
+      template_code,
+      template_name,
+      service_type,
+      send_type,
+      target,
+      scheduled_at: scheduled_at ?? null,
+      ...(target === "individual" && user_id ? { user_id } : {}),
+    },
+  });
 
   return apiSuccess({ sent: true });
 }

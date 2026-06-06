@@ -5,6 +5,7 @@ import { FileText, Download, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { toast } from "sonner";
 import { formatDateTime } from "@/lib/utils/format";
 import type { ProfileResume } from "@/types/user";
 
@@ -63,7 +64,7 @@ export function UserResumes({ userId }: UserResumesProps) {
       a.click();
       URL.revokeObjectURL(objectUrl);
     } catch (e) {
-      alert(e instanceof Error ? e.message : "다운로드에 실패했습니다.");
+      toast.error(e instanceof Error ? e.message : "다운로드에 실패했습니다.");
     } finally {
       setDownloadingId(null);
     }
@@ -79,8 +80,9 @@ export function UserResumes({ userId }: UserResumesProps) {
       const json = await res.json();
       if (!json.success) throw new Error(json.error?.message ?? "삭제 실패");
       setResumes((prev) => prev.filter((r) => r.id !== confirmTarget.id));
+      toast.success("이력서를 삭제했습니다.");
     } catch (e) {
-      alert(e instanceof Error ? e.message : "삭제에 실패했습니다.");
+      toast.error(e instanceof Error ? e.message : "삭제에 실패했습니다.");
     } finally {
       setDeletingId(null);
       setConfirmTarget(null);

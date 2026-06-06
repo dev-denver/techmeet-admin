@@ -27,6 +27,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { toast } from "sonner";
 import type { Notice, NoticeAttachment } from "@/types";
 
 const ALLOWED_MIME_TYPES = [
@@ -175,10 +176,13 @@ export function NoticeForm({ notice }: NoticeFormProps) {
 
     if (!res.ok) {
       const data = await res.json();
-      setError(data.error?.message ?? "저장에 실패했습니다.");
+      const message = data.error?.message ?? "저장에 실패했습니다.";
+      setError(message);
+      toast.error(message);
       return;
     }
 
+    toast.success(isEdit ? "수정되었습니다." : "등록되었습니다.");
     router.push("/notices");
     router.refresh();
   }
@@ -189,8 +193,11 @@ export function NoticeForm({ notice }: NoticeFormProps) {
     const res = await fetch(`/api/notices/${notice.id}`, { method: "DELETE" });
     setDeleting(false);
     if (res.ok) {
+      toast.success("삭제되었습니다.");
       router.push("/notices");
       router.refresh();
+    } else {
+      toast.error("삭제에 실패했습니다.");
     }
   }
 
@@ -200,8 +207,11 @@ export function NoticeForm({ notice }: NoticeFormProps) {
     const res = await fetch(`/api/notices/${notice.id}/restore`, { method: "PATCH" });
     setRestoring(false);
     if (res.ok) {
+      toast.success("복구되었습니다.");
       router.push("/notices");
       router.refresh();
+    } else {
+      toast.error("복구에 실패했습니다.");
     }
   }
 
@@ -258,7 +268,7 @@ export function NoticeForm({ notice }: NoticeFormProps) {
               <CardTitle className="text-base">게시 설정</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="is_published"
@@ -335,7 +345,7 @@ export function NoticeForm({ notice }: NoticeFormProps) {
                 <CardTitle className="text-base">예약 설정</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <FormField
                     control={form.control}
                     name="start_at"

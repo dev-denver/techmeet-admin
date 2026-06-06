@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { ListFilter } from "@/components/ui/list-filter";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { parsePageParams, PAGE_SIZE_OPTIONS } from "@/lib/utils/pagination";
 import { ProjectsTable } from "@/components/features/projects/ProjectsTable";
 import { PROJECT_STATUS } from "@/lib/constants/status";
 import { Plus } from "lucide-react";
@@ -13,14 +14,12 @@ import type { ProjectListItem } from "@/types";
 const PAGE_SIZE = 20;
 
 interface Props {
-  searchParams: Promise<{ q?: string; status?: string; page?: string; deleted?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; page?: string; deleted?: string; pageSize?: string }>;
 }
 
-async function getProjects(params: { q?: string; status?: string; page?: string; deleted?: string }) {
+async function getProjects(params: { q?: string; status?: string; page?: string; deleted?: string; pageSize?: string }) {
   const adminClient = createAdminClient();
-  const page = Number(params.page ?? "1");
-  const from = (page - 1) * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
+  const { pageSize, from, to } = parsePageParams(params, PAGE_SIZE);
   const showDeleted = params.deleted === "true";
 
   let query = adminClient
@@ -44,12 +43,12 @@ async function getProjects(params: { q?: string; status?: string; page?: string;
     .order("created_at", { ascending: false })
     .range(from, to);
 
-  return { projects: (data ?? []) as ProjectListItem[], total: count ?? 0, showDeleted };
+  return { projects: (data ?? []) as ProjectListItem[], total: count ?? 0, showDeleted, pageSize };
 }
 
 export default async function ProjectsPage({ searchParams }: Props) {
   const params = await searchParams;
-  const { projects, total, showDeleted } = await getProjects(params);
+  const { projects, total, showDeleted, pageSize } = await getProjects(params);
 
   return (
     <>
@@ -93,7 +92,7 @@ export default async function ProjectsPage({ searchParams }: Props) {
         <ProjectsTable projects={projects} showDeleted={showDeleted} />
 
         <Suspense>
-          <PaginationControls total={total} pageSize={PAGE_SIZE} />
+          <PaginationControls total={total} pageSize={pageSize} pageSizeOptions={PAGE_SIZE_OPTIONS} />
         </Suspense>
       </main>
     </>

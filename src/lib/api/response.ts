@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ZodError, type ZodSchema } from "zod";
+import { logger } from "@/lib/observability/logger";
 
 interface ApiErrorResponse {
   success: false;
@@ -29,7 +30,12 @@ export function apiError(
   details?: Record<string, string[]>
 ) {
   if (status >= 500) {
-    console.error(`[API Error] ${status} ${code ?? getDefaultCode(status)}: ${message}`, details ?? "");
+    logger.error("API error", {
+      status,
+      code: code ?? getDefaultCode(status),
+      message,
+      ...(details ? { details } : {}),
+    });
   }
   return NextResponse.json<ApiErrorResponse>(
     {
@@ -55,7 +61,9 @@ export function apiValidationError(error: ZodError) {
 }
 
 export function apiDbError(message: string) {
-  return apiError(message, 500, "DATABASE_ERROR");
+  // 원본 DB 오류는 서버 로그에만 기록하고 클라이언트에는 노출하지 않는다 (내부정보 누출 방지)
+  logger.error("Database error", { detail: message });
+  return apiError("데이터 처리 중 오류가 발생했습니다.", 500, "DATABASE_ERROR");
 }
 
 export function apiNotFound(resource: string) {

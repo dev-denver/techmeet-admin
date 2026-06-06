@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 import type { AlimtalkTemplate } from "@/types";
 
 const sendSchema = z.object({
@@ -81,11 +82,14 @@ export function AlimtalkSendForm() {
 
     if (!res.ok) {
       const data = await res.json();
-      setError(data.error?.message ?? "발송에 실패했습니다.");
+      const message = data.error?.message ?? "발송에 실패했습니다.";
+      setError(message);
+      toast.error(message);
       return;
     }
 
     setSuccess(true);
+    toast.success("알림톡 발송이 완료되었습니다.");
     setTimeout(() => router.push("/alimtalk"), 1500);
   }
 
@@ -141,7 +145,7 @@ export function AlimtalkSendForm() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormField
             control={form.control}
             name="service_type"

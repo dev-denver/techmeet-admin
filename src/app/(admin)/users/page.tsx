@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { ListFilter } from "@/components/ui/list-filter";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { parsePageParams, PAGE_SIZE_OPTIONS } from "@/lib/utils/pagination";
 import { ExportButton } from "@/components/ui/export-button";
 import { ACCOUNT_STATUS } from "@/lib/constants/status";
 import { formatDate } from "@/lib/utils/format";
@@ -22,14 +23,12 @@ import type { ProfileListItem } from "@/types";
 const PAGE_SIZE = 20;
 
 interface Props {
-  searchParams: Promise<{ q?: string; status?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; page?: string; pageSize?: string }>;
 }
 
-async function getUsers(params: { q?: string; status?: string; page?: string }) {
+async function getUsers(params: { q?: string; status?: string; page?: string; pageSize?: string }) {
   const adminClient = createAdminClient();
-  const page = Number(params.page ?? "1");
-  const from = (page - 1) * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
+  const { pageSize, from, to } = parsePageParams(params, PAGE_SIZE);
 
   let query = adminClient
     .from("profiles")
@@ -46,12 +45,12 @@ async function getUsers(params: { q?: string; status?: string; page?: string }) 
     .order("created_at", { ascending: false })
     .range(from, to);
 
-  return { users: (data ?? []) as ProfileListItem[], total: count ?? 0 };
+  return { users: (data ?? []) as ProfileListItem[], total: count ?? 0, pageSize };
 }
 
 export default async function UsersPage({ searchParams }: Props) {
   const params = await searchParams;
-  const { users, total } = await getUsers(params);
+  const { users, total, pageSize } = await getUsers(params);
 
   return (
     <>
@@ -79,7 +78,8 @@ export default async function UsersPage({ searchParams }: Props) {
           </div>
         </div>
 
-        <div className="rounded-md border">
+        {/* 데스크탑: 테이블 */}
+        <div className="hidden rounded-md border md:block">
           <Table>
             <TableHeader>
               <TableRow>
@@ -150,8 +150,58 @@ export default async function UsersPage({ searchParams }: Props) {
           </Table>
         </div>
 
+        {/* 모바일: 카드 리스트 */}
+        <div className="space-y-2 md:hidden">
+          {users.length === 0 ? (
+            <EmptyState title="등록된 개발자가 없습니다." />
+          ) : (
+            users.map((user) => {
+              const statusConfig = ACCOUNT_STATUS[user.account_status];
+              return (
+                <Link
+                  key={user.id}
+                  href={`/users/${user.id}`}
+                  className="block rounded-md border p-3 active:bg-muted/50"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-medium">{user.name}</span>
+                    <Badge
+                      variant={statusConfig?.color as "default" | "secondary" | "destructive" | "outline" ?? "secondary"}
+                    >
+                      {statusConfig?.label ?? user.account_status}
+                    </Badge>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">{user.email}</p>
+                  <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    <span className="font-mono">#{user.seq_id}</span>
+                    <span>{user.phone ?? "-"}</span>
+                    <span>
+                      {user.experience_years != null ? `경력 ${user.experience_years}년` : "경력 -"}
+                    </span>
+                    <span>{formatDate(user.created_at)}</span>
+                  </div>
+                  {user.tech_stack && user.tech_stack.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {user.tech_stack.slice(0, 4).map((skill: string) => (
+                        <span key={skill} className="rounded bg-muted px-1.5 py-0.5 text-xs">
+                          {skill}
+                        </span>
+                      ))}
+                      {user.tech_stack.length > 4 && (
+                        <span className="text-xs text-muted-foreground">
+                          +{user.tech_stack.length - 4}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </Link>
+              );
+            })
+          )}
+        </div>
+
         <Suspense>
-          <PaginationControls total={total} pageSize={PAGE_SIZE} />
+          <PaginationControls total={total} pageSize={pageSize} pageSizeOptions={PAGE_SIZE_OPTIONS} />
         </Suspense>
       </main>
     </>

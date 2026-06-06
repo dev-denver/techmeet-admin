@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/table";
 import { PROJECT_STATUS } from "@/lib/constants/status";
 import { formatDate } from "@/lib/utils/format";
+import { toast } from "sonner";
 import type { ProjectListItem } from "@/types";
 
 interface ProjectsTableProps {
@@ -40,9 +41,14 @@ export function ProjectsTable({ projects, showDeleted }: ProjectsTableProps) {
 
   async function handleRestore(id: string) {
     setRestoring(id);
-    await fetch(`/api/projects/${id}/restore`, { method: "PATCH" });
+    const res = await fetch(`/api/projects/${id}/restore`, { method: "PATCH" });
     setRestoring(null);
-    router.refresh();
+    if (res.ok) {
+      toast.success("복구되었습니다.");
+      router.refresh();
+    } else {
+      toast.error("복구에 실패했습니다.");
+    }
   }
 
   return (

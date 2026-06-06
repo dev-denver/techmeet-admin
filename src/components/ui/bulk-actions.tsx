@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Download } from "lucide-react";
+import { toast } from "sonner";
 
 interface StatusOption {
   value: string;
@@ -44,58 +45,80 @@ export function BulkActions({
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const count = selectedIds.length;
+
   async function handleBulkStatus(status: string) {
     if (!bulkStatusEndpoint || selectedIds.length === 0) return;
     setLoading(true);
-    await fetch(bulkStatusEndpoint, {
+    const res = await fetch(bulkStatusEndpoint, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ids: selectedIds, status }),
     });
     setLoading(false);
-    onClearSelection();
-    router.refresh();
+    if (res.ok) {
+      toast.success(`${count}개 항목의 상태를 변경했습니다.`);
+      onClearSelection();
+      router.refresh();
+    } else {
+      toast.error("상태 변경에 실패했습니다.");
+    }
   }
 
   async function handleBulkVisibility(is_visible: boolean) {
     if (!visibilityEndpoint || selectedIds.length === 0) return;
     setLoading(true);
-    await fetch(visibilityEndpoint, {
+    const res = await fetch(visibilityEndpoint, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ids: selectedIds, is_visible }),
     });
     setLoading(false);
-    onClearSelection();
-    router.refresh();
+    if (res.ok) {
+      toast.success(`${count}개 항목을 ${is_visible ? "노출" : "숨김"} 처리했습니다.`);
+      onClearSelection();
+      router.refresh();
+    } else {
+      toast.error("처리에 실패했습니다.");
+    }
   }
 
   async function handleBulkDelete() {
     if (!bulkDeleteEndpoint || selectedIds.length === 0) return;
     setLoading(true);
-    await fetch(bulkDeleteEndpoint, {
+    const res = await fetch(bulkDeleteEndpoint, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ids: selectedIds }),
     });
     setLoading(false);
     setDeleteOpen(false);
-    onClearSelection();
-    router.refresh();
+    if (res.ok) {
+      toast.success(`${count}개 항목을 삭제했습니다.`);
+      onClearSelection();
+      router.refresh();
+    } else {
+      toast.error("일괄 삭제에 실패했습니다.");
+    }
   }
 
   async function handleBulkRestore() {
     if (!bulkRestoreEndpoint || selectedIds.length === 0) return;
     setLoading(true);
-    await fetch(bulkRestoreEndpoint, {
+    const res = await fetch(bulkRestoreEndpoint, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ids: selectedIds }),
     });
     setLoading(false);
     setRestoreOpen(false);
-    onClearSelection();
-    router.refresh();
+    if (res.ok) {
+      toast.success(`${count}개 항목을 복구했습니다.`);
+      onClearSelection();
+      router.refresh();
+    } else {
+      toast.error("일괄 복구에 실패했습니다.");
+    }
   }
 
   function handleExport() {

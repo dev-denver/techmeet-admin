@@ -25,6 +25,28 @@ import {
 
 const PAGE_SIZE = 20;
 
+interface ReferredUserRow {
+  id: string;
+  seq_id: number;
+  name: string | null;
+  email: string | null;
+  created_at: string;
+  referrer_id: string;
+  account_status: "active" | "withdrawn";
+}
+
+interface ReferrerRow {
+  id: string;
+  seq_id: number;
+  name: string | null;
+  email: string | null;
+  account_status: "active" | "withdrawn";
+}
+
+interface ReferredUserWithReferrer extends ReferredUserRow {
+  referrer: ReferrerRow | null;
+}
+
 interface Props {
   searchParams: Promise<{
     q?: string;
@@ -142,12 +164,13 @@ async function getReferredUsers(params: {
   q?: string;
   page?: string;
   status?: string;
-}) {
+}): Promise<{ users: ReferredUserWithReferrer[]; total: number }> {
   const adminClient = createAdminClient();
   const page = Number(params.page ?? "1");
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
 
+  // Supabase 쿼리 빌더는 조건부 재할당 시 타입이 좁혀지지 않아 빌더만 any로 둔다.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query: any = adminClient
     .from("profiles")
@@ -163,25 +186,24 @@ async function getReferredUsers(params: {
     query = query.eq("account_status", "active");
   }
 
-  const { data: referredUsers, count } = await query
+  const { data, count } = await query
     .order("created_at", { ascending: false })
     .range(from, to);
 
-  if (!referredUsers?.length) return { users: [], total: count ?? 0 };
+  const referredUsers = (data ?? []) as ReferredUserRow[];
+  if (!referredUsers.length) return { users: [], total: count ?? 0 };
 
-  const referrerIds = [
-    ...new Set(referredUsers.map((u: any) => u.referrer_id as string)),
-  ];
+  const referrerIds = [...new Set(referredUsers.map((u) => u.referrer_id))];
   const { data: referrers } = await adminClient
     .from("profiles")
     .select("id, seq_id, name, email, account_status")
     .in("id", referrerIds);
 
-  const referrerMap = new Map(
-    (referrers ?? []).map((r) => [r.id, r])
+  const referrerMap = new Map<string, ReferrerRow>(
+    ((referrers ?? []) as ReferrerRow[]).map((r) => [r.id, r])
   );
 
-  const users = referredUsers.map((user: any) => ({
+  const users: ReferredUserWithReferrer[] = referredUsers.map((user) => ({
     ...user,
     referrer: referrerMap.get(user.referrer_id) ?? null,
   }));
@@ -224,7 +246,7 @@ export default async function ReferrersPage({ searchParams }: Props) {
     getReferrerGroups(),
     view === "list"
       ? getReferredUsers(params)
-      : Promise.resolve({ users: [] as any[], total: 0 }),
+      : Promise.resolve({ users: [] as ReferredUserWithReferrer[], total: 0 }),
   ]);
 
   const filteredGroups = filterGroups(groups, params.q, params.by, params.status);
@@ -353,8 +375,8 @@ export default async function ReferrersPage({ searchParams }: Props) {
               </span>
             </div>
 
-            {/* 목록 테이블 */}
-            <div className="rounded-md border">
+            {/* 목록 테이블 (데스크탑) */}
+            <div className="hidden rounded-md border md:block">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -375,8 +397,7 @@ export default async function ReferrersPage({ searchParams }: Props) {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    users.map((user: any) => {
+                    users.map((user) => {
                       const referrer = user.referrer ?? null;
                       const userWithdrawn = user.account_status === "withdrawn";
                       const referrerWithdrawn =
@@ -459,6 +480,72 @@ export default async function ReferrersPage({ searchParams }: Props) {
                   )}
                 </TableBody>
               </Table>
+            </div>
+
+            {/* 모바일: 카드 리스트 */}
+            <div className="space-y-2 md:hidden">
+              {users.length === 0 ? (
+                <EmptyState title="추천 가입 내역이 없습니다." />
+              ) : (
+                users.map((user) => {
+                  const referrer = user.referrer ?? null;
+                  const userWithdrawn = user.account_status === "withdrawn";
+                  const referrerWithdrawn = referrer?.account_status === "withdrawn";
+                  return (
+                    <div
+                      key={user.id}
+                      className={cn("rounded-md border p-3", userWithdrawn && "opacity-60")}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <Link
+                            href={`/users/${user.id}`}
+                            className={cn(
+                              "font-medium hover:underline",
+                              userWithdrawn && "line-through text-muted-foreground"
+                            )}
+                          >
+                            {user.name ?? "-"}
+                          </Link>
+                          {userWithdrawn && (
+                            <Badge
+                              variant="outline"
+                              className="h-4 px-1 py-0 text-xs leading-none text-muted-foreground"
+                            >
+                              탈퇴
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="font-mono text-xs text-muted-foreground">
+                          #{user.seq_id}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-sm text-muted-foreground">
+                        {user.email ?? "-"}
+                      </p>
+                      <div className="mt-2 border-t pt-2 text-xs text-muted-foreground">
+                        추천인:{" "}
+                        {referrer ? (
+                          <Link
+                            href={`/users/${referrer.id}`}
+                            className={cn(
+                              "hover:underline",
+                              referrerWithdrawn && "line-through"
+                            )}
+                          >
+                            {referrer.name ?? "-"} ({referrer.email ?? "-"})
+                          </Link>
+                        ) : (
+                          "-"
+                        )}
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {formatDate(user.created_at)}
+                      </p>
+                    </div>
+                  );
+                })
+              )}
             </div>
 
             <Suspense>
