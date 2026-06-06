@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { ListFilter } from "@/components/ui/list-filter";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { parsePageParams, PAGE_SIZE_OPTIONS } from "@/lib/utils/pagination";
 import { formatDate } from "@/lib/utils/format";
 import { Plus } from "lucide-react";
 import type { NoticeListItem } from "@/types";
@@ -22,14 +23,12 @@ import type { NoticeListItem } from "@/types";
 const PAGE_SIZE = 20;
 
 interface Props {
-  searchParams: Promise<{ q?: string; published?: string; page?: string; deleted?: string }>;
+  searchParams: Promise<{ q?: string; published?: string; page?: string; deleted?: string; pageSize?: string }>;
 }
 
-async function getNotices(params: { q?: string; published?: string; page?: string; deleted?: string }) {
+async function getNotices(params: { q?: string; published?: string; page?: string; deleted?: string; pageSize?: string }) {
   const adminClient = createAdminClient();
-  const page = Number(params.page ?? "1");
-  const from = (page - 1) * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
+  const { pageSize, from, to } = parsePageParams(params, PAGE_SIZE);
   const showDeleted = params.deleted === "true";
 
   let query = adminClient
@@ -55,12 +54,12 @@ async function getNotices(params: { q?: string; published?: string; page?: strin
     .order("created_at", { ascending: false })
     .range(from, to);
 
-  return { notices: (data ?? []) as NoticeListItem[], total: count ?? 0, showDeleted };
+  return { notices: (data ?? []) as NoticeListItem[], total: count ?? 0, showDeleted, pageSize };
 }
 
 export default async function NoticesPage({ searchParams }: Props) {
   const params = await searchParams;
-  const { notices, total, showDeleted } = await getNotices(params);
+  const { notices, total, showDeleted, pageSize } = await getNotices(params);
 
   return (
     <>
@@ -164,7 +163,7 @@ export default async function NoticesPage({ searchParams }: Props) {
         </div>
 
         <Suspense>
-          <PaginationControls total={total} pageSize={PAGE_SIZE} />
+          <PaginationControls total={total} pageSize={pageSize} pageSizeOptions={PAGE_SIZE_OPTIONS} />
         </Suspense>
       </main>
     </>

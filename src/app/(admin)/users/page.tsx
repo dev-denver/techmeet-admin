@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { ListFilter } from "@/components/ui/list-filter";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { parsePageParams, PAGE_SIZE_OPTIONS } from "@/lib/utils/pagination";
 import { ExportButton } from "@/components/ui/export-button";
 import { ACCOUNT_STATUS } from "@/lib/constants/status";
 import { formatDate } from "@/lib/utils/format";
@@ -22,14 +23,12 @@ import type { ProfileListItem } from "@/types";
 const PAGE_SIZE = 20;
 
 interface Props {
-  searchParams: Promise<{ q?: string; status?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; page?: string; pageSize?: string }>;
 }
 
-async function getUsers(params: { q?: string; status?: string; page?: string }) {
+async function getUsers(params: { q?: string; status?: string; page?: string; pageSize?: string }) {
   const adminClient = createAdminClient();
-  const page = Number(params.page ?? "1");
-  const from = (page - 1) * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
+  const { pageSize, from, to } = parsePageParams(params, PAGE_SIZE);
 
   let query = adminClient
     .from("profiles")
@@ -46,12 +45,12 @@ async function getUsers(params: { q?: string; status?: string; page?: string }) 
     .order("created_at", { ascending: false })
     .range(from, to);
 
-  return { users: (data ?? []) as ProfileListItem[], total: count ?? 0 };
+  return { users: (data ?? []) as ProfileListItem[], total: count ?? 0, pageSize };
 }
 
 export default async function UsersPage({ searchParams }: Props) {
   const params = await searchParams;
-  const { users, total } = await getUsers(params);
+  const { users, total, pageSize } = await getUsers(params);
 
   return (
     <>
@@ -151,7 +150,7 @@ export default async function UsersPage({ searchParams }: Props) {
         </div>
 
         <Suspense>
-          <PaginationControls total={total} pageSize={PAGE_SIZE} />
+          <PaginationControls total={total} pageSize={pageSize} pageSizeOptions={PAGE_SIZE_OPTIONS} />
         </Suspense>
       </main>
     </>
