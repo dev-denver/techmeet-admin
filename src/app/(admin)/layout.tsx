@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { Toaster } from "@/components/ui/sonner";
 
 export default async function AdminRootLayout({
   children,
@@ -50,6 +51,7 @@ export default async function AdminRootLayout({
       <div className="flex flex-col flex-1 md:pl-64 min-h-screen">
         {children}
       </div>
+      <Toaster position="top-center" richColors />
     </div>
   );
 }
