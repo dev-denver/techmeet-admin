@@ -19,12 +19,12 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("system");
-
-  useEffect(() => {
-    const stored = localStorage.getItem("theme") as Theme | null;
-    if (stored) setTheme(stored);
-  }, []);
+  const [theme, setTheme] = useState<Theme>(() => {
+    // 클라이언트에서만 localStorage 접근 (SSR 스냅샷은 "system").
+    // 이 컨텍스트의 theme 값에 의존해 SSR 마크업을 그리는 소비자가 없어 하이드레이션 불일치가 없다.
+    if (typeof window === "undefined") return "system";
+    return (localStorage.getItem("theme") as Theme | null) ?? "system";
+  });
 
   useEffect(() => {
     const root = document.documentElement;
