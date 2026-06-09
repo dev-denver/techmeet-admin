@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useCallback, useTransition } from "react";
+import { useCallback, useTransition, useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -19,6 +20,7 @@ interface FilterOption {
 
 interface ListFilterProps {
   searchPlaceholder?: string;
+  searchScopes?: FilterOption[];
   filters?: {
     key: string;
     label: string;
@@ -28,12 +30,18 @@ interface ListFilterProps {
 
 export function ListFilter({
   searchPlaceholder = "검색...",
+  searchScopes,
   filters = [],
 }: ListFilterProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const [inputValue, setInputValue] = useState(searchParams.get("q") ?? "");
+
+  useEffect(() => {
+    setInputValue(searchParams.get("q") ?? "");
+  }, [searchParams]);
 
   const updateParams = useCallback(
     (key: string, value: string) => {
@@ -51,27 +59,55 @@ export function ListFilter({
     [router, pathname, searchParams]
   );
 
-  const handleSearch = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      updateParams("q", e.target.value);
+  const handleSearchSubmit = useCallback(() => {
+    updateParams("q", inputValue);
+  }, [updateParams, inputValue]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") handleSearchSubmit();
     },
-    [updateParams]
+    [handleSearchSubmit]
   );
 
   return (
     <div className={`flex flex-wrap items-center gap-3 ${isPending ? "opacity-70" : ""}`}>
-      <div className="relative flex-1 min-w-[200px] max-w-sm">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder={searchPlaceholder}
-          defaultValue={searchParams.get("q") ?? ""}
-          onChange={handleSearch}
-          className="pl-8"
-        />
+      <div className="flex gap-2">
+        {searchScopes && searchScopes.length > 0 && (
+          <Select
+            key={`scope-${searchParams.get("scope") ?? "all"}`}
+            defaultValue={searchParams.get("scope") ?? "all"}
+            onValueChange={(v) => updateParams("scope", v)}
+          >
+            <SelectTrigger className="w-[120px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {searchScopes.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        <div className="relative min-w-[200px] max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={searchPlaceholder}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            className="pl-8"
+          />
+        </div>
+        <Button onClick={handleSearchSubmit} disabled={isPending}>
+          검색
+        </Button>
       </div>
       {filters.map((filter) => (
         <Select
-          key={filter.key}
+          key={`${filter.key}-${searchParams.get(filter.key) ?? "all"}`}
           defaultValue={searchParams.get(filter.key) ?? "all"}
           onValueChange={(v) => updateParams(filter.key, v)}
         >

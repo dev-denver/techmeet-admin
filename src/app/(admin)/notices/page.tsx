@@ -23,10 +23,10 @@ import type { NoticeListItem } from "@/types";
 const PAGE_SIZE = 20;
 
 interface Props {
-  searchParams: Promise<{ q?: string; published?: string; page?: string; deleted?: string; pageSize?: string }>;
+  searchParams: Promise<{ q?: string; scope?: string; published?: string; page?: string; deleted?: string; pageSize?: string }>;
 }
 
-async function getNotices(params: { q?: string; published?: string; page?: string; deleted?: string; pageSize?: string }) {
+async function getNotices(params: { q?: string; scope?: string; published?: string; page?: string; deleted?: string; pageSize?: string }) {
   const adminClient = createAdminClient();
   const { pageSize, from, to } = parsePageParams(params, PAGE_SIZE);
   const showDeleted = params.deleted === "true";
@@ -42,7 +42,14 @@ async function getNotices(params: { q?: string; published?: string; page?: strin
   }
 
   if (params.q) {
-    query = query.ilike("title", `%${params.q}%`);
+    const scope = params.scope ?? "all";
+    if (scope === "title") {
+      query = query.ilike("title", `%${params.q}%`);
+    } else if (scope === "content") {
+      query = query.ilike("content", `%${params.q}%`);
+    } else {
+      query = query.or(`title.ilike.%${params.q}%,content.ilike.%${params.q}%`);
+    }
   }
   if (params.published === "true") {
     query = query.eq("is_published", true);
@@ -68,7 +75,12 @@ export default async function NoticesPage({ searchParams }: Props) {
         <div className="flex items-center justify-between mb-4">
           <Suspense>
             <ListFilter
-              searchPlaceholder="제목 검색..."
+              searchPlaceholder="검색..."
+              searchScopes={[
+                { value: "all", label: "제목/내용" },
+                { value: "title", label: "제목" },
+                { value: "content", label: "내용" },
+              ]}
               filters={[
                 {
                   key: "published",
