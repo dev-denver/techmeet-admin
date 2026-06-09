@@ -35,6 +35,7 @@ export interface ProfileListItem {
   account_status: AccountStatus;
   created_at: string;
   application_count?: number;
+  project_count?: string | null;
   admin_memo?: string | null;
 }
 

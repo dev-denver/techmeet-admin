@@ -47,11 +47,32 @@ async function getUsers(params: { q?: string; status?: string; page?: string; pa
     .order("created_at", { ascending: false })
     .range(from, to);
 
-  const users = (data ?? []).map((u: any) => ({  // eslint-disable-line @typescript-eslint/no-explicit-any
+  const rawUsers = data ?? [];
+  const userIds = rawUsers.map((u: any) => u.id); // eslint-disable-line @typescript-eslint/no-explicit-any
+
+  const { data: acceptedApps } = userIds.length > 0
+    ? await adminClient
+        .from("applications")
+        .select("freelancer_id, applied_at, project:projects(title)")
+        .eq("status", "accepted")
+        .in("freelancer_id", userIds)
+        .order("applied_at", { ascending: false })
+    : { data: [] };
+
+  const latestProjectMap = new Map<string, string>();
+  acceptedApps?.forEach((app: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+    if (!latestProjectMap.has(app.freelancer_id)) {
+      const title = Array.isArray(app.project) ? app.project[0]?.title : app.project?.title;
+      if (title) latestProjectMap.set(app.freelancer_id, title);
+    }
+  });
+
+  const users = rawUsers.map((u: any) => ({  // eslint-disable-line @typescript-eslint/no-explicit-any
     ...u,
     admin_memo: Array.isArray(u.user_admin_memos) && u.user_admin_memos.length > 0
       ? (u.user_admin_memos[0] as { memo: string }).memo
       : null,
+    project_count: latestProjectMap.get(u.id) ?? null,
   })) as ProfileListItem[];
   return { users, total: count ?? 0, pageSize };
 }
@@ -93,10 +114,10 @@ export default async function UsersPage({ searchParams }: Props) {
               <TableRow>
                 <TableHead className="w-16">ID</TableHead>
                 <TableHead>이름</TableHead>
-                <TableHead>이메일</TableHead>
-                <TableHead>연락처</TableHead>
-                <TableHead>기술스택</TableHead>
+                <TableHead>전화번호</TableHead>
                 <TableHead className="text-center">경력(년)</TableHead>
+                <TableHead>기술스택</TableHead>
+                <TableHead className="text-center">투입 프로젝트</TableHead>
                 <TableHead>상태</TableHead>
                 <TableHead>가입일</TableHead>
                 <TableHead className="w-12 text-center">메모</TableHead>
@@ -125,8 +146,10 @@ export default async function UsersPage({ searchParams }: Props) {
                           {user.name}
                         </Link>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{user.email}</TableCell>
                       <TableCell className="text-muted-foreground">{user.phone ?? "-"}</TableCell>
+                      <TableCell className="text-center">
+                        {user.experience_years != null ? `${user.experience_years}년` : "-"}
+                      </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1 max-w-[200px]">
                           {user.tech_stack?.slice(0, 3).map((skill: string) => (
@@ -140,8 +163,8 @@ export default async function UsersPage({ searchParams }: Props) {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="text-center">
-                        {user.experience_years != null ? `${user.experience_years}년` : "-"}
+                      <TableCell className="text-muted-foreground max-w-[160px] truncate">
+                        {user.project_count ?? "-"}
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -187,13 +210,13 @@ export default async function UsersPage({ searchParams }: Props) {
                       {statusConfig?.label ?? user.account_status}
                     </Badge>
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground">{user.email}</p>
                   <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     <span className="font-mono">#{user.seq_id}</span>
                     <span>{user.phone ?? "-"}</span>
                     <span>
                       {user.experience_years != null ? `경력 ${user.experience_years}년` : "경력 -"}
                     </span>
+                    {user.project_count && <span>{user.project_count}</span>}
                     <span>{formatDate(user.created_at)}</span>
                   </div>
                   {user.tech_stack && user.tech_stack.length > 0 && (

@@ -73,3 +73,31 @@ export async function PATCH(
 
   return apiSuccess(data);
 }
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { error, adminUser } = await verifyAdmin();
+  if (error) return error;
+
+  const { id } = await params;
+  const adminClient = createAdminClient();
+
+  const { error: dbError } = await adminClient
+    .from("user_admin_memos")
+    .delete()
+    .eq("user_id", id);
+
+  if (dbError) return apiDbError(dbError.message);
+
+  await logAudit({
+    adminId: adminUser!.id,
+    adminName: adminUser!.name,
+    action: "delete",
+    resource: "user_memos",
+    resourceId: id,
+  });
+
+  return apiSuccess(null);
+}

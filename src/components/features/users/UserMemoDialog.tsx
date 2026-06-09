@@ -1,19 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { NotebookPen } from "lucide-react";
+import { NotebookPen, Pencil, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { formatDate } from "@/lib/utils/format";
+
+interface MemoData {
+  user_id: string;
+  memo: string;
+  updated_at?: string;
+  updated_by_name?: string | null;
+}
 
 interface UserMemoDialogProps {
   userId: string;
@@ -24,13 +30,46 @@ interface UserMemoDialogProps {
 export function UserMemoDialog({ userId, userName, initialMemo }: UserMemoDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [memo, setMemo] = useState(initialMemo ?? "");
+  const [memoData, setMemoData] = useState<MemoData | null>(null);
+  const [editText, setEditText] = useState("");
+  const [mode, setMode] = useState<"view" | "edit">("view");
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const hasMemo = !!(initialMemo && initialMemo.trim());
 
+  const fetchMemo = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/users/${userId}/memo`);
+      const json = await res.json();
+      if (json.success) {
+        const data: MemoData = json.data;
+        setMemoData(data.memo ? data : null);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
   function handleOpen() {
-    setMemo(initialMemo ?? "");
+    setMode("view");
     setOpen(true);
+    fetchMemo();
+  }
+
+  function handleStartEdit() {
+    setEditText(memoData?.memo ?? "");
+    setMode("edit");
+  }
+
+  function handleStartCreate() {
+    setEditText("");
+    setMode("edit");
+  }
+
+  function handleCancelEdit() {
+    setMode("view");
   }
 
   async function handleSave() {
@@ -39,17 +78,35 @@ export function UserMemoDialog({ userId, userName, initialMemo }: UserMemoDialog
       const res = await fetch(`/api/users/${userId}/memo`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ memo }),
+        body: JSON.stringify({ memo: editText }),
       });
       const json = await res.json();
       if (!json.success) throw new Error(json.error?.message ?? "저장 실패");
+      setMemoData(json.data);
+      setMode("view");
       toast.success("메모가 저장되었습니다.");
-      setOpen(false);
       router.refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "저장에 실패했습니다.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/users/${userId}/memo`, { method: "DELETE" });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error?.message ?? "삭제 실패");
+      setMemoData(null);
+      setMode("view");
+      toast.success("메모가 삭제되었습니다.");
+      router.refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "삭제에 실패했습니다.");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -59,7 +116,7 @@ export function UserMemoDialog({ userId, userName, initialMemo }: UserMemoDialog
         onClick={handleOpen}
         className="rounded p-1 transition-colors hover:bg-muted"
         title={hasMemo ? "메모 보기/편집" : "메모 추가"}
-        aria-label={`${userName} 메모 편집`}
+        aria-label={`${userName} 메모`}
       >
         <NotebookPen
           className={`h-4 w-4 transition-colors ${
@@ -78,29 +135,73 @@ export function UserMemoDialog({ userId, userName, initialMemo }: UserMemoDialog
               관리자 메모 — {userName}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-2">
-            <DialogDescription className="text-xs">
-              이 메모는 사용자에게 표시되지 않습니다.
-            </DialogDescription>
-            <Textarea
-              rows={5}
-              placeholder="내부 메모를 입력하세요..."
-              value={memo}
-              onChange={(e) => setMemo(e.target.value)}
-              className="resize-none"
-              maxLength={2000}
-              autoFocus
-            />
-            <p className="text-right text-xs text-muted-foreground">{memo.length} / 2000</p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
-              취소
-            </Button>
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? "저장 중..." : "저장"}
-            </Button>
-          </DialogFooter>
+
+          <p className="text-xs text-muted-foreground -mt-1">
+            이 메모는 사용자에게 표시되지 않습니다.
+          </p>
+
+          {loading ? (
+            <div className="h-24 animate-pulse rounded-md bg-muted/50" />
+          ) : mode === "edit" ? (
+            <div className="space-y-2">
+              <Textarea
+                rows={6}
+                placeholder="내부 메모를 입력하세요..."
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                className="resize-none"
+                maxLength={2000}
+                autoFocus
+              />
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">{editText.length} / 2000</span>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={handleCancelEdit} disabled={saving}>
+                    취소
+                  </Button>
+                  <Button size="sm" onClick={handleSave} disabled={saving || !editText.trim()}>
+                    {saving ? "저장 중..." : "저장"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : memoData?.memo ? (
+            <div className="space-y-3">
+              <div className="rounded-md border bg-muted/30 p-3 text-sm whitespace-pre-wrap">
+                {memoData.memo}
+              </div>
+              {(memoData.updated_by_name || memoData.updated_at) && (
+                <p className="text-xs text-muted-foreground">
+                  {memoData.updated_by_name && `${memoData.updated_by_name} · `}
+                  {memoData.updated_at && formatDate(memoData.updated_at)}
+                </p>
+              )}
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-1" />
+                  {deleting ? "삭제 중..." : "삭제"}
+                </Button>
+                <Button size="sm" onClick={handleStartEdit}>
+                  <Pencil className="h-3.5 w-3.5 mr-1" />
+                  편집
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-3 py-6 text-muted-foreground">
+              <NotebookPen className="h-8 w-8 opacity-30" />
+              <p className="text-sm">등록된 메모가 없습니다.</p>
+              <Button size="sm" onClick={handleStartCreate}>
+                + 메모 작성
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>

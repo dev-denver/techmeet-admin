@@ -79,7 +79,7 @@ export function ListFilter({
             defaultValue={searchParams.get("scope") ?? "all"}
             onValueChange={(v) => updateParams("scope", v)}
           >
-            <SelectTrigger className="w-[120px]">
+            <SelectTrigger className="w-[110px] shrink-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -91,7 +91,7 @@ export function ListFilter({
             </SelectContent>
           </Select>
         )}
-        <div className="relative min-w-[200px] max-w-sm">
+        <div className="relative w-[350px]">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={searchPlaceholder}
@@ -101,7 +101,7 @@ export function ListFilter({
             className="pl-8"
           />
         </div>
-        <Button onClick={handleSearchSubmit} disabled={isPending}>
+        <Button onClick={handleSearchSubmit} disabled={isPending} className="shrink-0">
           검색
         </Button>
       </div>
