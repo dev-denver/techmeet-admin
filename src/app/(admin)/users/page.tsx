@@ -17,6 +17,7 @@ import { PaginationControls } from "@/components/ui/pagination-controls";
 import { parsePageParams, PAGE_SIZE_OPTIONS } from "@/lib/utils/pagination";
 import { ExportButton } from "@/components/ui/export-button";
 import { UserMemoDialog } from "@/components/features/users/UserMemoDialog";
+import { UserCreateDialog } from "@/components/features/users/UserCreateDialog";
 import { ACCOUNT_STATUS } from "@/lib/constants/status";
 import { formatDate } from "@/lib/utils/format";
 import { NotebookPen } from "lucide-react";
@@ -103,6 +104,7 @@ export default async function UsersPage({ searchParams }: Props) {
           </Suspense>
           <div className="flex items-center gap-2 shrink-0">
             <span className="text-sm text-muted-foreground">전체 {total}명</span>
+            <UserCreateDialog />
             <ExportButton type="users" />
           </div>
         </div>
@@ -112,14 +114,14 @@ export default async function UsersPage({ searchParams }: Props) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-16">ID</TableHead>
-                <TableHead>이름</TableHead>
-                <TableHead>전화번호</TableHead>
-                <TableHead className="text-center">경력(년)</TableHead>
-                <TableHead>기술스택</TableHead>
-                <TableHead className="text-center">투입 프로젝트</TableHead>
-                <TableHead>상태</TableHead>
-                <TableHead>가입일</TableHead>
+                <TableHead className="w-14">ID</TableHead>
+                <TableHead className="w-32">이름</TableHead>
+                <TableHead className="w-36">전화번호</TableHead>
+                <TableHead className="w-20 text-center">경력(년)</TableHead>
+                <TableHead className="w-52">기술스택</TableHead>
+                <TableHead className="w-44">투입 프로젝트</TableHead>
+                <TableHead className="w-24">상태</TableHead>
+                <TableHead className="w-28">가입일</TableHead>
                 <TableHead className="w-12 text-center">메모</TableHead>
               </TableRow>
             </TableHeader>
@@ -151,7 +153,7 @@ export default async function UsersPage({ searchParams }: Props) {
                         {user.experience_years != null ? `${user.experience_years}년` : "-"}
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-wrap gap-1 max-w-[200px]">
+                        <div className="flex flex-wrap gap-1">
                           {user.tech_stack?.slice(0, 3).map((skill: string) => (
                             <span key={skill} className="text-xs bg-muted rounded px-1.5 py-0.5">{skill}</span>
                           ))}
@@ -163,8 +165,8 @@ export default async function UsersPage({ searchParams }: Props) {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="text-muted-foreground max-w-[160px] truncate">
-                        {user.project_count ?? "-"}
+                      <TableCell className="text-muted-foreground truncate max-w-0">
+                        <span className="block truncate">{user.project_count ?? "-"}</span>
                       </TableCell>
                       <TableCell>
                         <Badge

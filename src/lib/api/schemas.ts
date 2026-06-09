@@ -16,6 +16,17 @@ export const userUpdateSchema = z.object({
 
 export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
 
+export const userCreateSchema = z.object({
+  email: z.string().email("올바른 이메일을 입력해주세요."),
+  name: z.string().min(1, "이름을 입력해주세요.").max(50, "이름은 50자 이내로 입력해주세요."),
+  phone: z.string()
+    .regex(/^01[0-9]-\d{3,4}-\d{4}$/, "올바른 전화번호 형식이 아닙니다.")
+    .nullable()
+    .optional(),
+});
+
+export type UserCreateInput = z.infer<typeof userCreateSchema>;
+
 export const userMemoUpdateSchema = z.object({
   memo: z.string().max(2000, "메모는 2000자 이내로 입력해주세요."),
 });
