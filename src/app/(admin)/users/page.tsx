@@ -16,8 +16,10 @@ import { ListFilter } from "@/components/ui/list-filter";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { parsePageParams, PAGE_SIZE_OPTIONS } from "@/lib/utils/pagination";
 import { ExportButton } from "@/components/ui/export-button";
+import { UserMemoDialog } from "@/components/features/users/UserMemoDialog";
 import { ACCOUNT_STATUS } from "@/lib/constants/status";
 import { formatDate } from "@/lib/utils/format";
+import { NotebookPen } from "lucide-react";
 import type { ProfileListItem } from "@/types";
 
 const PAGE_SIZE = 20;
@@ -32,7 +34,7 @@ async function getUsers(params: { q?: string; status?: string; page?: string; pa
 
   let query = adminClient
     .from("profiles")
-    .select("id, seq_id, name, email, phone, tech_stack, experience_years, account_status, created_at", { count: "exact" });
+    .select("id, seq_id, name, email, phone, tech_stack, experience_years, account_status, created_at, user_admin_memos(memo)", { count: "exact" });
 
   if (params.q) {
     query = query.or(`name.ilike.%${params.q}%,email.ilike.%${params.q}%,phone.ilike.%${params.q}%`);
@@ -45,7 +47,13 @@ async function getUsers(params: { q?: string; status?: string; page?: string; pa
     .order("created_at", { ascending: false })
     .range(from, to);
 
-  return { users: (data ?? []) as ProfileListItem[], total: count ?? 0, pageSize };
+  const users = (data ?? []).map((u: any) => ({  // eslint-disable-line @typescript-eslint/no-explicit-any
+    ...u,
+    admin_memo: Array.isArray(u.user_admin_memos) && u.user_admin_memos.length > 0
+      ? (u.user_admin_memos[0] as { memo: string }).memo
+      : null,
+  })) as ProfileListItem[];
+  return { users, total: count ?? 0, pageSize };
 }
 
 export default async function UsersPage({ searchParams }: Props) {
@@ -91,12 +99,13 @@ export default async function UsersPage({ searchParams }: Props) {
                 <TableHead className="text-center">경력(년)</TableHead>
                 <TableHead>상태</TableHead>
                 <TableHead>가입일</TableHead>
+                <TableHead className="w-12 text-center">메모</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8}>
+                  <TableCell colSpan={9}>
                     <EmptyState title="등록된 개발자가 없습니다." />
                   </TableCell>
                 </TableRow>
@@ -142,6 +151,13 @@ export default async function UsersPage({ searchParams }: Props) {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">{formatDate(user.created_at)}</TableCell>
+                      <TableCell className="text-center">
+                        <UserMemoDialog
+                          userId={user.id}
+                          userName={user.name}
+                          initialMemo={user.admin_memo ?? null}
+                        />
+                      </TableCell>
                     </TableRow>
                   );
                 })
@@ -192,6 +208,12 @@ export default async function UsersPage({ searchParams }: Props) {
                           +{user.tech_stack.length - 4}
                         </span>
                       )}
+                    </div>
+                  )}
+                  {user.admin_memo && user.admin_memo.trim() && (
+                    <div className="mt-1 flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+                      <NotebookPen className="h-3 w-3" />
+                      <span>메모 있음</span>
                     </div>
                   )}
                 </Link>

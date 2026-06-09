@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Header } from "@/components/layout/Header";
 import { UserForm } from "@/components/features/users/UserForm";
+import { UserMemoSection } from "@/components/features/users/UserMemoSection";
 import { UserResumes } from "@/components/features/users/UserResumes";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -68,8 +69,9 @@ export default async function UserDetailPage({
             <TabsTrigger value="resumes">이력서</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="info" className="max-w-2xl">
+          <TabsContent value="info" className="max-w-2xl space-y-6">
             <UserForm user={user} />
+            <UserMemoSection userId={id} />
           </TabsContent>
 
           <TabsContent value="applications">

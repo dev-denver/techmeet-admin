@@ -16,6 +16,12 @@ export const userUpdateSchema = z.object({
 
 export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
 
+export const userMemoUpdateSchema = z.object({
+  memo: z.string().max(2000, "메모는 2000자 이내로 입력해주세요."),
+});
+
+export type UserMemoUpdateInput = z.infer<typeof userMemoUpdateSchema>;
+
 // ── Projects ──
 export const projectCreateSchema = z.object({
   title: z.string().min(1, "제목을 입력해주세요.").max(200, "제목은 200자 이내로 입력해주세요."),

@@ -35,6 +35,16 @@ export interface ProfileListItem {
   account_status: AccountStatus;
   created_at: string;
   application_count?: number;
+  admin_memo?: string | null;
+}
+
+export interface UserAdminMemo {
+  id: string;
+  user_id: string;
+  memo: string;
+  updated_at: string;
+  updated_by_id: string | null;
+  updated_by_name: string | null;
 }
 
 export interface ProfileResume {

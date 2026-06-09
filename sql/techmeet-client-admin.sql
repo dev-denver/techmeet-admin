@@ -19,6 +19,7 @@
 --            10. alimtalk_templates — 카카오 알림톡 서식
 --            11. alimtalk_logs     — 카카오 알림톡 발송 이력
 --            12. admin_audit_logs  — 관리자 감사 로그
+--            13. user_admin_memos  — 관리자 전용 사용자 메모
 --
 -- 설계 원칙:
 --   - profiles.id = auth.users.id (client 코드 호환)
@@ -530,6 +531,22 @@ alter table public.admin_audit_logs enable row level security;
 -- service_role 전용
 
 
+-- ------------------------------------------------------------
+-- 13. user_admin_memos (관리자 전용 사용자 메모)
+-- ------------------------------------------------------------
+create table if not exists public.user_admin_memos (
+  id              uuid        default gen_random_uuid() primary key,
+  user_id         uuid        not null unique references public.profiles(id) on delete cascade,
+  memo            text        not null default '',
+  updated_at      timestamptz default now(),
+  updated_by_id   uuid        references public.admin_users(id) on delete set null,
+  updated_by_name text
+);
+
+alter table public.user_admin_memos enable row level security;
+-- service_role 전용 (정책 없음 = 클라이언트 JWT 접근 불가)
+
+
 -- ============================================================
 -- 성능 인덱스
 -- ============================================================
@@ -584,6 +601,9 @@ create index if not exists idx_audit_logs_created_at        on public.admin_audi
 create index if not exists idx_audit_logs_admin_id          on public.admin_audit_logs(admin_id);
 create index if not exists idx_audit_logs_resource          on public.admin_audit_logs(resource);
 create index if not exists idx_audit_logs_action            on public.admin_audit_logs(action);
+
+-- [ADMIN] user_admin_memos
+create index if not exists idx_user_admin_memos_user_id     on public.user_admin_memos(user_id);
 
 
 -- ============================================================
