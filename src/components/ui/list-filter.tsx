@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useCallback, useTransition, useState, useEffect } from "react";
+import { useCallback, useTransition, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,11 +37,7 @@ export function ListFilter({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
-  const [inputValue, setInputValue] = useState(searchParams.get("q") ?? "");
-
-  useEffect(() => {
-    setInputValue(searchParams.get("q") ?? "");
-  }, [searchParams]);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const updateParams = useCallback(
     (key: string, value: string) => {
@@ -60,8 +56,8 @@ export function ListFilter({
   );
 
   const handleSearchSubmit = useCallback(() => {
-    updateParams("q", inputValue);
-  }, [updateParams, inputValue]);
+    updateParams("q", inputRef.current?.value ?? "");
+  }, [updateParams]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -94,9 +90,10 @@ export function ListFilter({
         <div className="relative w-[350px]">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
+            key={`q-${searchParams.get("q") ?? ""}`}
+            ref={inputRef}
             placeholder={searchPlaceholder}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            defaultValue={searchParams.get("q") ?? ""}
             onKeyDown={handleKeyDown}
             className="pl-8"
           />
