@@ -14,10 +14,10 @@ import type { ProjectListItem } from "@/types";
 const PAGE_SIZE = 20;
 
 interface Props {
-  searchParams: Promise<{ q?: string; status?: string; page?: string; deleted?: string; pageSize?: string }>;
+  searchParams: Promise<{ q?: string; scope?: string; status?: string; page?: string; deleted?: string; pageSize?: string }>;
 }
 
-async function getProjects(params: { q?: string; status?: string; page?: string; deleted?: string; pageSize?: string }) {
+async function getProjects(params: { q?: string; scope?: string; status?: string; page?: string; deleted?: string; pageSize?: string }) {
   const adminClient = createAdminClient();
   const { pageSize, from, to } = parsePageParams(params, PAGE_SIZE);
   const showDeleted = params.deleted === "true";
@@ -33,7 +33,14 @@ async function getProjects(params: { q?: string; status?: string; page?: string;
   }
 
   if (params.q) {
-    query = query.or(`title.ilike.%${params.q}%,category.ilike.%${params.q}%`);
+    const scope = params.scope ?? "all";
+    if (scope === "title") {
+      query = query.ilike("title", `%${params.q}%`);
+    } else if (scope === "content") {
+      query = query.ilike("description", `%${params.q}%`);
+    } else {
+      query = query.or(`title.ilike.%${params.q}%,description.ilike.%${params.q}%,category.ilike.%${params.q}%`);
+    }
   }
   if (params.status) {
     query = query.eq("status", params.status);
@@ -57,7 +64,12 @@ export default async function ProjectsPage({ searchParams }: Props) {
         <div className="flex items-center justify-between mb-4">
           <Suspense>
             <ListFilter
-              searchPlaceholder="제목, 카테고리 검색..."
+              searchPlaceholder="검색..."
+              searchScopes={[
+                { value: "all", label: "제목/내용" },
+                { value: "title", label: "제목" },
+                { value: "content", label: "내용" },
+              ]}
               filters={[
                 {
                   key: "status",
