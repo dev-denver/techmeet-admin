@@ -25,9 +25,16 @@ interface Props {
   searchParams: Promise<SearchParams>;
 }
 
-/** 검색/상태 필터를 applications 쿼리에 적용한다. 매칭 결과가 없으면 null을 반환한다. */
+/**
+ * 검색/상태 필터를 applications 쿼리에 적용한다.
+ * 매칭 결과가 없으면 null, 있으면 { query }로 감싸서 반환한다.
+ *
+ * Supabase 쿼리 빌더는 thenable이므로 async 함수에서 직접 반환하면
+ * await 시 빌더 자체가 아닌 실행 결과로 resolve된다.
+ * { query } 래퍼로 감싸서 이 문제를 방지한다.
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function applyApplicationFilters(adminClient: ReturnType<typeof createAdminClient>, query: any, params: SearchParams) {
+async function applyApplicationFilters(adminClient: ReturnType<typeof createAdminClient>, query: any, params: SearchParams): Promise<{ query: any } | null> {
   if (params.status) {
     query = query.eq("status", params.status);
   }
@@ -72,7 +79,7 @@ async function applyApplicationFilters(adminClient: ReturnType<typeof createAdmi
     }
   }
 
-  return query;
+  return { query };
 }
 
 async function getApplications(params: SearchParams) {
@@ -87,10 +94,10 @@ async function getApplications(params: SearchParams) {
       profile:profiles!freelancer_id(id, name, email)
     `, { count: "exact" });
 
-  const query = await applyApplicationFilters(adminClient, baseQuery, params);
-  if (!query) return { applications: [], total: 0, pageSize };
+  const result = await applyApplicationFilters(adminClient, baseQuery, params);
+  if (!result) return { applications: [], total: 0, pageSize };
 
-  const { data, count } = await query
+  const { data, count } = await result.query
     .order("applied_at", { ascending: false })
     .range(from, to);
 
@@ -111,10 +118,10 @@ async function getGroupedApplications(params: SearchParams) {
       profile:profiles!freelancer_id(id, name, email)
     `);
 
-  const query = await applyApplicationFilters(adminClient, baseQuery, params);
-  if (!query) return { groups: [], total: 0, pageSize: GROUP_PAGE_SIZE };
+  const result = await applyApplicationFilters(adminClient, baseQuery, params);
+  if (!result) return { groups: [], total: 0, pageSize: GROUP_PAGE_SIZE };
 
-  const { data } = await query.order("applied_at", { ascending: false });
+  const { data } = await result.query.order("applied_at", { ascending: false });
   const applications = data ?? [];
 
   // applied_at desc로 정렬된 데이터를 순서대로 묶으면, 그룹 순서 자체가
