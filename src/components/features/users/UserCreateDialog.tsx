@@ -25,25 +25,43 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-const PHONE_REGEX = /^01[0-9]-\d{3,4}-\d{4}$/;
+// 011~019 포함, 중간 4자리 + 끝 4자리 (11자리 고정)
+const PHONE_REGEX = /^01[0-9]-\d{4}-\d{4}$/;
 
 const createSchema = z.object({
   email: z.string().email("올바른 이메일을 입력해주세요."),
   name: z.string().min(1, "이름을 입력해주세요.").max(50, "이름은 50자 이내로 입력해주세요."),
   phone: z.string()
-    .refine((v) => !v || PHONE_REGEX.test(v), "올바른 전화번호를 입력해주세요. (예: 010-1234-5678)")
+    .refine((v) => !v || PHONE_REGEX.test(v), "전화번호 11자리를 모두 입력해주세요. (예: 010-1234-5678)")
     .optional(),
 });
 
 type CreateInput = z.infer<typeof createSchema>;
 
-// 숫자만 추출 후 최대 11자리, 자동으로 010-XXXX-XXXX 형태로 포맷
-function formatPhone(raw: string): string {
-  const d = raw.replace(/\D/g, "").slice(0, 11);
-  if (d.length <= 3) return d;
-  if (d.length <= 7) return `${d.slice(0, 3)}-${d.slice(3)}`;
-  if (d.length < 11) return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
-  return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
+/**
+ * 실시간 전화번호 포맷 (3-4-4 고정)
+ * prevFormatted 와 비교해 삭제 여부를 판단하여 자동 대시 추가/제거 결정
+ */
+function formatPhone(rawInput: string, prevFormatted: string): string {
+  const digits = rawInput.replace(/\D/g, "").slice(0, 11);
+  // 문자 수 기준으로 삭제 여부 판단
+  const isDeleting = rawInput.length < prevFormatted.length;
+
+  if (digits.length === 0) return "";
+
+  // 1~3자리: 숫자만, 3자리 완성 시 대시 자동 추가
+  if (digits.length <= 3) {
+    return !isDeleting && digits.length === 3 ? `${digits}-` : digits;
+  }
+
+  // 4~7자리: 010-XXXX, 7자리 완성 시 대시 자동 추가
+  if (digits.length <= 7) {
+    const partial = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    return !isDeleting && digits.length === 7 ? `${partial}-` : partial;
+  }
+
+  // 8~11자리: 010-XXXX-XXXX
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
 }
 
 export function UserCreateDialog() {
@@ -148,7 +166,9 @@ export function UserCreateDialog() {
                       inputMode="numeric"
                       maxLength={13}
                       value={field.value ?? ""}
-                      onChange={(e) => field.onChange(formatPhone(e.target.value))}
+                      onChange={(e) => {
+                        field.onChange(formatPhone(e.target.value, field.value ?? ""));
+                      }}
                       onBlur={field.onBlur}
                       name={field.name}
                       ref={field.ref}
