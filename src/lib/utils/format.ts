@@ -18,13 +18,9 @@ export function formatRelativeTime(
   return formatDistanceToNow(new Date(date), { addSuffix: true, locale: ko });
 }
 
-export function formatBudget(amount: number | null | undefined): string {
+export function formatRate(amount: number | null | undefined): string {
   if (amount == null) return "-";
-  return new Intl.NumberFormat("ko-KR", {
-    style: "currency",
-    currency: "KRW",
-    maximumFractionDigits: 0,
-  }).format(amount);
+  return `${new Intl.NumberFormat("ko-KR").format(amount)}만원`;
 }
 
 export function formatCount(count: number): string {

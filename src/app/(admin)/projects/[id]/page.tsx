@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { APPLICATION_STATUS } from "@/lib/constants/status";
-import { formatDate, formatBudget } from "@/lib/utils/format";
+import { formatDate, formatRate } from "@/lib/utils/format";
 import type { Project } from "@/types";
 
 async function getProject(id: string): Promise<Project | null> {
@@ -86,7 +86,7 @@ export default async function ProjectDetailPage({
                     <TableHead>지원자</TableHead>
                     <TableHead>이메일</TableHead>
                     <TableHead>상태</TableHead>
-                    <TableHead>희망 예산</TableHead>
+                    <TableHead>희망 단가</TableHead>
                     <TableHead>지원일</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -120,7 +120,7 @@ export default async function ProjectDetailPage({
                               {statusConfig?.label ?? app.status}
                             </Badge>
                           </TableCell>
-                          <TableCell>{formatBudget(app.expected_rate)}</TableCell>
+                          <TableCell>{formatRate(app.expected_rate)}</TableCell>
                           <TableCell>{formatDate(app.applied_at ?? app.created_at)}</TableCell>
                         </TableRow>
                       );

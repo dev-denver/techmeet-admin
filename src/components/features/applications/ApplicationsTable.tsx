@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { APPLICATION_STATUS } from "@/lib/constants/status";
-import { formatDate, formatBudget } from "@/lib/utils/format";
+import { formatDate, formatRate } from "@/lib/utils/format";
 
 interface ApplicationItem {
   id: string;
@@ -70,7 +70,7 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
               <TableHead>프로젝트</TableHead>
               <TableHead>지원자</TableHead>
               <TableHead>상태</TableHead>
-              <TableHead>희망 예산</TableHead>
+              <TableHead>희망 단가</TableHead>
               <TableHead>지원일</TableHead>
             </TableRow>
           </TableHeader>
@@ -118,7 +118,7 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
                         {statusConfig?.label ?? app.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{formatBudget(app.expected_rate)}</TableCell>
+                    <TableCell>{formatRate(app.expected_rate)}</TableCell>
                     <TableCell>{formatDate(app.applied_at ?? app.created_at)}</TableCell>
                   </TableRow>
                 );

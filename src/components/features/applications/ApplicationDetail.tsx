@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { APPLICATION_STATUS } from "@/lib/constants/status";
-import { formatBudget, formatDateTime } from "@/lib/utils/format";
+import { formatRate, formatDateTime } from "@/lib/utils/format";
 import type { ApplicationStatus } from "@/lib/constants/status";
 import { toast } from "sonner";
 
@@ -98,8 +98,8 @@ export function ApplicationDetail({ application }: { application: any }) {
             </div>
           </div>
           <div>
-            <span className="text-muted-foreground">희망 금액</span>
-            <p className="font-medium">{formatBudget(application.expected_rate)}</p>
+            <span className="text-muted-foreground">희망 단가</span>
+            <p className="font-medium">{formatRate(application.expected_rate)}</p>
           </div>
           <div>
             <span className="text-muted-foreground">지원일</span>
