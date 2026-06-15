@@ -48,7 +48,7 @@ function getNextYearString() {
 const projectSchema = z.object({
   title: z.string().min(1, "제목을 입력해주세요"),
   description: z.string().min(1, "설명을 입력해주세요"),
-  status: z.enum(["recruiting", "in_progress", "completed", "cancelled"]),
+  status: z.enum(["recruiting", "completed", "cancelled"]),
   duration_start_date: z.string().min(1, "시작일을 입력해주세요"),
   duration_end_date: z.string().min(1, "종료일을 입력해주세요"),
   tech_stack: z.string(),

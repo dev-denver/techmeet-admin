@@ -6,7 +6,7 @@ export interface Application {
   project_id: string;
   freelancer_id: string;
   status: ApplicationStatus;
-  cover_letter: string | null;
+  note: string | null;
   expected_rate: number | null;
   applied_at: string;
   created_at: string;

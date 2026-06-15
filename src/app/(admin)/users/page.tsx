@@ -35,7 +35,7 @@ async function getUsers(params: { q?: string; status?: string; page?: string; pa
 
   let query = adminClient
     .from("profiles")
-    .select("id, seq_id, name, email, phone, tech_stack, experience_years, account_status, created_at, user_admin_memos(memo)", { count: "exact" });
+    .select("id, seq_id, name, email, phone, tech_stack, account_status, created_at, user_admin_memos(memo)", { count: "exact" });
 
   if (params.q) {
     query = query.or(`name.ilike.%${params.q}%,email.ilike.%${params.q}%,phone.ilike.%${params.q}%`);
@@ -117,7 +117,6 @@ export default async function UsersPage({ searchParams }: Props) {
                 <TableHead className="w-14">ID</TableHead>
                 <TableHead className="w-32">이름</TableHead>
                 <TableHead className="w-36">전화번호</TableHead>
-                <TableHead className="w-20 text-center">경력(년)</TableHead>
                 <TableHead className="w-52">기술스택</TableHead>
                 <TableHead className="w-44">투입 프로젝트</TableHead>
                 <TableHead className="w-24">상태</TableHead>
@@ -128,7 +127,7 @@ export default async function UsersPage({ searchParams }: Props) {
             <TableBody>
               {users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9}>
+                  <TableCell colSpan={8}>
                     <EmptyState title="등록된 개발자가 없습니다." />
                   </TableCell>
                 </TableRow>
@@ -149,9 +148,6 @@ export default async function UsersPage({ searchParams }: Props) {
                         </Link>
                       </TableCell>
                       <TableCell className="text-muted-foreground">{user.phone ?? "-"}</TableCell>
-                      <TableCell className="text-center">
-                        {user.experience_years != null ? `${user.experience_years}년` : "-"}
-                      </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
                           {user.tech_stack?.slice(0, 3).map((skill: string) => (
@@ -215,9 +211,6 @@ export default async function UsersPage({ searchParams }: Props) {
                   <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     <span className="font-mono">#{user.seq_id}</span>
                     <span>{user.phone ?? "-"}</span>
-                    <span>
-                      {user.experience_years != null ? `경력 ${user.experience_years}년` : "경력 -"}
-                    </span>
                     {user.project_count && <span>{user.project_count}</span>}
                     <span>{formatDate(user.created_at)}</span>
                   </div>

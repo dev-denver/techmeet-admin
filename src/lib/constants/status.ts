@@ -1,6 +1,5 @@
 export const PROJECT_STATUS = {
   recruiting: { label: "모집중", color: "default" },
-  in_progress: { label: "진행중", color: "default" },
   completed: { label: "완료", color: "secondary" },
   cancelled: { label: "취소", color: "destructive" },
 } as const;

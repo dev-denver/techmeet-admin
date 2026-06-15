@@ -60,9 +60,6 @@ create table if not exists public.profiles (
   phone                            text,                                                                  -- 전화번호
   bio                              text,                                                                  -- 자기소개
   tech_stack                       text[]      not null default array[]::text[],                          -- 기술 스택
-  experience_years                 integer,                                                               -- 경력 연수
-  experience_months                integer     not null default 0                                         -- 경력 개월수 (0~11)
-    check (experience_months >= 0 and experience_months <= 11),
   kakao_id                         text,                                                                  -- 카카오 ID
   availability_status              text                                                                   -- 투입 가능 상태 (available/partial/unavailable)
     check (availability_status in ('available', 'partial', 'unavailable')),
@@ -77,12 +74,18 @@ create table if not exists public.profiles (
   birth_date                       date,                                                                  -- 생년월일
   gender                           text                                                                   -- 성별 (male/female)
     check (gender in ('male', 'female')),
-  joining_date                     date,                                                                  -- 가입일 (커뮤니티 등록 기준)
-  affiliation                      text,                                                                  -- 소속사/소속 회사
-  department                       text,                                                                  -- 부서
-  position_title                   text,                                                                  -- 직함/직위
-  military_service                 text,                                                                  -- 병역 사항
   address                          text,                                                                  -- 주소
+  contract_type                    text                                                                   -- 계약 형태 (business/individual=3.3%)
+    check (contract_type in ('business', 'individual')),
+  business_name                    text,                                                                  -- 사업자명
+  business_number                  text,                                                                  -- 사업자 번호 (000-00-00000)
+  business_address                 text,                                                                  -- 사업장 주소
+  business_registration_file_path  text,                                                                  -- 사업자등록증 파일 경로
+  business_registration_file_name  text,                                                                  -- 사업자등록증 원본 파일명
+  bank_name                        text,                                                                  -- 은행명
+  bank_account_number              text,                                                                  -- 계좌번호
+  bank_account_image_path          text,                                                                  -- 계좌 이미지 파일 경로
+  bank_account_image_name          text,                                                                  -- 계좌 이미지 원본 파일명
   seq_id                           bigint      generated always as identity unique,                       -- Supabase Realtime 순서 관리 (자동)
   created_at                       timestamptz not null default now(),                                    -- 생성 일시
   updated_at                       timestamptz not null default now()                                     -- 수정 일시
@@ -269,8 +272,8 @@ create table if not exists public.projects (
   id                  uuid        default gen_random_uuid() primary key,                    -- 고유 식별자
   title               text        not null,                                                 -- 프로젝트명
   description         text        not null default '',                                      -- 프로젝트 설명
-  status              text        not null default 'recruiting'                             -- 진행 상태 (recruiting/in_progress/completed/cancelled)
-    check (status in ('recruiting', 'in_progress', 'completed', 'cancelled')),
+  status              text        not null default 'recruiting'                             -- 진행 상태 (recruiting/completed/cancelled)
+    check (status in ('recruiting', 'completed', 'cancelled')),
   duration_start_date date,                                                                 -- 프로젝트 시작일
   duration_end_date   date,                                                                 -- 프로젝트 종료일
   deadline            date,                                                                 -- 지원 마감일
@@ -358,7 +361,7 @@ create table if not exists public.applications (
   freelancer_id        uuid        references public.profiles(id) on delete cascade not null,           -- 지원자 프로필 ID
   status               text        not null default 'pending'                                           -- 지원 상태 (pending/reviewing/interview/accepted/rejected/withdrawn)
     check (status in ('pending', 'reviewing', 'interview', 'accepted', 'rejected', 'withdrawn')),
-  cover_letter         text,                                                                             -- 지원서 내용
+  note                 text,                                                                             -- 참고사항
   expected_rate        numeric,                                                                          -- 희망 단가
   available_start_date date,                                                                             -- 투입 가능일 (admin 전용)
   admin_memo           text,                                                                             -- 관리자 메모 (admin 전용)
@@ -630,6 +633,32 @@ create policy "본인 이력서 다운로드" on storage.objects
 create policy "본인 이력서 삭제" on storage.objects
   for delete using (
     bucket_id = 'resumes'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+-- contract-documents (사업자등록증, 계좌 이미지 등, 비공개)
+insert into storage.buckets (id, name, public)
+  values ('contract-documents', 'contract-documents', false)
+  on conflict do nothing;
+
+drop policy if exists "본인 계약서류 업로드" on storage.objects;
+create policy "본인 계약서류 업로드" on storage.objects
+  for insert with check (
+    bucket_id = 'contract-documents'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "본인 계약서류 다운로드" on storage.objects;
+create policy "본인 계약서류 다운로드" on storage.objects
+  for select using (
+    bucket_id = 'contract-documents'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "본인 계약서류 삭제" on storage.objects;
+create policy "본인 계약서류 삭제" on storage.objects
+  for delete using (
+    bucket_id = 'contract-documents'
     and (storage.foldername(name))[1] = auth.uid()::text
   );
 

@@ -11,12 +11,12 @@ const EXPORT_CONFIGS: Record<string, {
 }> = {
   users: {
     table: "profiles",
-    select: "seq_id, name, email, phone, tech_stack, experience_years, account_status, created_at",
-    headers: ["#ID", "이름", "이메일", "연락처", "스킬", "경력(년)", "상태", "가입일"],
+    select: "seq_id, name, email, phone, tech_stack, account_status, created_at",
+    headers: ["#ID", "이름", "이메일", "연락처", "스킬", "상태", "가입일"],
     mapRow: (r) => [
       `#${r.seq_id}`, String(r.name), String(r.email),
       String(r.phone ?? ""), (r.tech_stack as string[])?.join(", ") ?? "",
-      String(r.experience_years ?? ""), String(r.account_status), String(r.created_at),
+      String(r.account_status), String(r.created_at),
     ],
   },
   projects: {

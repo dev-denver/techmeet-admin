@@ -33,7 +33,6 @@ const userSchema = z.object({
   phone: z.string().nullable(),
   bio: z.string().nullable(),
   tech_stack: z.string(),
-  experience_years: z.union([z.number(), z.null()]),
   portfolio_url: z.string().url("올바른 URL을 입력해주세요").nullable().or(z.literal("")),
   account_status: z.enum(["active", "withdrawn"]),
   notification_new_project: z.boolean(),
@@ -58,7 +57,6 @@ export function UserForm({ user }: UserFormProps) {
       phone: user.phone ?? null,
       bio: user.bio ?? null,
       tech_stack: user.tech_stack?.join(", ") ?? "",
-      experience_years: user.experience_years ?? null,
       portfolio_url: user.portfolio_url ?? "",
       account_status: user.account_status,
       notification_new_project: user.notification_new_project,
@@ -172,52 +170,30 @@ export function UserForm({ user }: UserFormProps) {
             )}
           />
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="experience_years"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>경력 (년)</FormLabel>
+          <FormField
+            control={form.control}
+            name="account_status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>계정 상태</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      value={field.value ?? ""}
-                      onChange={(e) =>
-                        field.onChange(e.target.value ? Number(e.target.value) : null)
-                      }
-                    />
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="account_status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>계정 상태</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {Object.entries(ACCOUNT_STATUS).map(([key, { label }]) => (
-                        <SelectItem key={key} value={key}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+                  <SelectContent>
+                    {Object.entries(ACCOUNT_STATUS).map(([key, { label }]) => (
+                      <SelectItem key={key} value={key}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control}

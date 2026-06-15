@@ -29,7 +29,6 @@ async function getStats() {
     { count: totalUsers },
     { count: recruitingProjects },
     { count: totalProjects },
-    { count: inProgressProjects },
     { count: completedProjects },
     { count: cancelledProjects },
     { count: pendingApplications },
@@ -43,7 +42,6 @@ async function getStats() {
     db.from("profiles").select("*", { count: "exact", head: true }),
     db.from("projects").select("*", { count: "exact", head: true }).eq("status", "recruiting"),
     db.from("projects").select("*", { count: "exact", head: true }),
-    db.from("projects").select("*", { count: "exact", head: true }).eq("status", "in_progress"),
     db.from("projects").select("*", { count: "exact", head: true }).eq("status", "completed"),
     db.from("projects").select("*", { count: "exact", head: true }).eq("status", "cancelled"),
     db.from("applications").select("*", { count: "exact", head: true }).eq("status", "pending"),
@@ -64,7 +62,6 @@ async function getStats() {
     publishedNotices: publishedNotices ?? 0,
     projectStatusCounts: {
       recruiting: recruitingProjects ?? 0,
-      in_progress: inProgressProjects ?? 0,
       completed: completedProjects ?? 0,
       cancelled: cancelledProjects ?? 0,
     },
@@ -117,7 +114,7 @@ async function getFeeds() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .filter((app: any) => {
       const proj = Array.isArray(app.projects) ? app.projects[0] : app.projects;
-      if (!proj?.duration_end_date || proj.status !== "in_progress") return false;
+      if (!proj?.duration_end_date || proj.status === "cancelled") return false;
       const endDate = new Date(proj.duration_end_date);
       return endDate >= today && endDate <= ninetyDaysLater;
     })
@@ -158,7 +155,6 @@ const RESOURCE_LABELS: Record<string, string> = {
 
 const STATUS_BAR_COLORS: Record<string, string> = {
   recruiting: "bg-blue-500",
-  in_progress: "bg-emerald-500",
   completed: "bg-slate-400",
   cancelled: "bg-red-400",
 };

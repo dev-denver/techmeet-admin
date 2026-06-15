@@ -108,11 +108,11 @@ export function ApplicationDetail({ application }: { application: any }) {
         </div>
       </div>
 
-      {/* 지원서 내용 */}
-      {application.cover_letter && (
+      {/* 참고사항 */}
+      {application.note && (
         <div className="rounded-lg border p-4 space-y-2">
-          <h2 className="font-semibold">지원 내용</h2>
-          <p className="text-sm whitespace-pre-wrap">{application.cover_letter}</p>
+          <h2 className="font-semibold">참고사항</h2>
+          <p className="text-sm whitespace-pre-wrap">{application.note}</p>
         </div>
       )}
 
