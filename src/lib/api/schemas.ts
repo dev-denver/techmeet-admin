@@ -6,7 +6,6 @@ export const userUpdateSchema = z.object({
   phone: z.string().nullable().optional(),
   bio: z.string().nullable().optional(),
   tech_stack: z.array(z.string()).optional(),
-  experience_years: z.union([z.number().min(0), z.null()]).optional(),
   portfolio_url: z.string().url("올바른 URL을 입력해주세요.").nullable().optional(),
   account_status: z.enum(["active", "withdrawn"]).optional(),
   notification_new_project: z.boolean().optional(),
@@ -20,7 +19,7 @@ export const userCreateSchema = z.object({
   email: z.string().email("올바른 이메일을 입력해주세요."),
   name: z.string().min(1, "이름을 입력해주세요.").max(50, "이름은 50자 이내로 입력해주세요."),
   phone: z.string()
-    .regex(/^01[0-9]-\d{3,4}-\d{4}$/, "올바른 전화번호 형식이 아닙니다.")
+    .regex(/^01[0-9]-\d{4}-\d{4}$/, "올바른 전화번호 형식이 아닙니다.")
     .nullable()
     .optional(),
 });
@@ -37,7 +36,7 @@ export type UserMemoUpdateInput = z.infer<typeof userMemoUpdateSchema>;
 export const projectCreateSchema = z.object({
   title: z.string().min(1, "제목을 입력해주세요.").max(200, "제목은 200자 이내로 입력해주세요."),
   description: z.string().min(1, "설명을 입력해주세요."),
-  status: z.enum(["recruiting", "in_progress", "completed", "cancelled"]),
+  status: z.enum(["recruiting", "completed", "cancelled"]),
   duration_start_date: z.string().min(1, "시작일을 입력해주세요."),
   duration_end_date: z.string().min(1, "종료일을 입력해주세요."),
   tech_stack: z.array(z.string()),
@@ -51,7 +50,7 @@ export const projectCreateSchema = z.object({
 export const projectUpdateSchema = z.object({
   title: z.string().min(1, "제목을 입력해주세요.").max(200, "제목은 200자 이내로 입력해주세요.").optional(),
   description: z.string().min(1, "설명을 입력해주세요.").optional(),
-  status: z.enum(["recruiting", "in_progress", "completed", "cancelled"]).optional(),
+  status: z.enum(["recruiting", "completed", "cancelled"]).optional(),
   duration_start_date: z.string().min(1).optional(),
   duration_end_date: z.string().min(1).optional(),
   tech_stack: z.array(z.string()).optional(),

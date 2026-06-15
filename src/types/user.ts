@@ -8,7 +8,6 @@ export interface Profile {
   phone: string | null;
   bio: string | null;
   tech_stack: string[];
-  experience_years: number | null;
   portfolio_url: string | null;
   avatar_url: string | null;
   headline: string | null;
@@ -31,7 +30,6 @@ export interface ProfileListItem {
   email: string;
   phone: string | null;
   tech_stack: string[];
-  experience_years: number | null;
   account_status: AccountStatus;
   created_at: string;
   application_count?: number;
@@ -63,7 +61,6 @@ export interface ProfileFormValues {
   phone: string | null;
   bio: string | null;
   tech_stack: string[];
-  experience_years: number | null;
   portfolio_url: string | null;
   account_status: AccountStatus;
   notification_new_project: boolean;
