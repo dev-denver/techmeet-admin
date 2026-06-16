@@ -128,14 +128,6 @@ export function UserForm({ user }: UserFormProps) {
             </p>
           </div>
           <div>
-            <span className="text-muted-foreground">경력</span>
-            <p className="font-medium">
-              {user.experience_years != null
-                ? `${user.experience_years}년 ${user.experience_months}개월`
-                : "-"}
-            </p>
-          </div>
-          <div>
             <span className="text-muted-foreground">투입 가능 상태</span>
             <p className="font-medium">
               {user.availability_status === "available"
@@ -150,18 +142,6 @@ export function UserForm({ user }: UserFormProps) {
           <div>
             <span className="text-muted-foreground">투입 가능 시작일</span>
             <p className="font-medium">{user.available_from_date ? formatDate(user.available_from_date) : "-"}</p>
-          </div>
-          <div>
-            <span className="text-muted-foreground">소속사</span>
-            <p className="font-medium">{user.affiliation ?? "-"}</p>
-          </div>
-          <div>
-            <span className="text-muted-foreground">부서</span>
-            <p className="font-medium">{user.department ?? "-"}</p>
-          </div>
-          <div>
-            <span className="text-muted-foreground">직함</span>
-            <p className="font-medium">{user.position_title ?? "-"}</p>
           </div>
           <div>
             <span className="text-muted-foreground">주소</span>

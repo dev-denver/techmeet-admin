@@ -15,13 +15,7 @@ export interface Profile {
   kakao_id: string | null;
   birth_date: string | null;
   gender: string | null;
-  experience_years: number | null;
-  experience_months: number;
-  affiliation: string | null;
-  department: string | null;
-  position_title: string | null;
   address: string | null;
-  joining_date: string | null;
   account_status: AccountStatus;
   notification_new_project: boolean;
   notification_application_update: boolean;
