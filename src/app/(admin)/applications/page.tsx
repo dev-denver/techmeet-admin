@@ -90,7 +90,7 @@ async function getApplications(params: SearchParams) {
     .from("applications")
     .select(`
       id, seq_id, status, expected_rate, applied_at, created_at,
-      project:projects(id, title),
+      project:projects(id, title, business_type),
       profile:profiles!freelancer_id(id, name, email)
     `, { count: "exact" });
 
@@ -114,7 +114,7 @@ async function getGroupedApplications(params: SearchParams) {
     .from("applications")
     .select(`
       id, seq_id, status, expected_rate, applied_at, created_at,
-      project:projects(id, title, status),
+      project:projects(id, title, status, business_type),
       profile:profiles!freelancer_id(id, name, email)
     `);
 

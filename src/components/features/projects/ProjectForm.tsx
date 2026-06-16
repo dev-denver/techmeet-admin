@@ -268,8 +268,8 @@ export function ProjectForm({ project }: ProjectFormProps) {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="none">선택 안 함</SelectItem>
-                        <SelectItem value="sm">SM (시스템 유지보수)</SelectItem>
-                        <SelectItem value="si">SI (시스템 통합)</SelectItem>
+                        <SelectItem value="sm">SM</SelectItem>
+                        <SelectItem value="si">SI</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

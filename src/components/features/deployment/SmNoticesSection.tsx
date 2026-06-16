@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -32,7 +33,8 @@ export function SmNoticesSection({ notices }: SmNoticesSectionProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-10 text-center">No</TableHead>
+              <TableHead className="w-14 text-center">SEQ</TableHead>
+              <TableHead className="w-16">SM/SI</TableHead>
               <TableHead>사이트</TableHead>
               <TableHead>주요이관사항</TableHead>
               <TableHead>날짜</TableHead>
@@ -43,18 +45,19 @@ export function SmNoticesSection({ notices }: SmNoticesSectionProps) {
           <TableBody>
             {notices.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                   등록된 이관공지가 없습니다.
                 </TableCell>
               </TableRow>
             ) : (
-              notices.map((n, i) => (
+              notices.map((n) => (
                 <TableRow
                   key={n.id}
                   className="cursor-pointer hover:bg-muted/50"
                   onClick={() => setSelected(n)}
                 >
-                  <TableCell className="text-center text-muted-foreground text-xs">{i + 1}</TableCell>
+                  <TableCell className="text-center font-mono text-xs text-muted-foreground">#{n.seq_id}</TableCell>
+                  <TableCell><Badge variant="outline">SM</Badge></TableCell>
                   <TableCell className="font-medium">{n.site}</TableCell>
                   <TableCell className="max-w-xs truncate">{n.transfer_notice}</TableCell>
                   <TableCell>{format(new Date(n.notice_date), "yyyy.MM.dd")}</TableCell>
