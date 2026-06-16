@@ -17,6 +17,7 @@ export interface Project {
   headcount: number | null;
   requirements: string[];
   location: string | null;
+  business_type: "sm" | "si" | null;
   is_visible: boolean;
   deleted_at: string | null;
   created_at: string;
