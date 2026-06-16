@@ -8,7 +8,6 @@ export interface Profile {
   phone: string | null;
   bio: string | null;
   tech_stack: string[];
-  portfolio_url: string | null;
   avatar_url: string | null;
   headline: string | null;
   availability_status: string | null;
@@ -61,7 +60,6 @@ export interface ProfileFormValues {
   phone: string | null;
   bio: string | null;
   tech_stack: string[];
-  portfolio_url: string | null;
   account_status: AccountStatus;
   notification_new_project: boolean;
   notification_application_update: boolean;

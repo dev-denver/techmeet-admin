@@ -33,7 +33,6 @@ const userSchema = z.object({
   phone: z.string().nullable(),
   bio: z.string().nullable(),
   tech_stack: z.string(),
-  portfolio_url: z.string().url("올바른 URL을 입력해주세요").nullable().or(z.literal("")),
   account_status: z.enum(["active", "withdrawn"]),
   notification_new_project: z.boolean(),
   notification_application_update: z.boolean(),
@@ -57,7 +56,6 @@ export function UserForm({ user }: UserFormProps) {
       phone: user.phone ?? null,
       bio: user.bio ?? null,
       tech_stack: user.tech_stack?.join(", ") ?? "",
-      portfolio_url: user.portfolio_url ?? "",
       account_status: user.account_status,
       notification_new_project: user.notification_new_project,
       notification_application_update: user.notification_application_update,
@@ -73,7 +71,6 @@ export function UserForm({ user }: UserFormProps) {
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean),
-      portfolio_url: values.portfolio_url || null,
     };
 
     const res = await fetch(`/api/users/${user.id}`, {
@@ -203,25 +200,6 @@ export function UserForm({ user }: UserFormProps) {
                 <FormLabel>기술 스택 (쉼표로 구분)</FormLabel>
                 <FormControl>
                   <Input placeholder="React, TypeScript" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="portfolio_url"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>포트폴리오 URL</FormLabel>
-                <FormControl>
-                  <Input
-                    type="url"
-                    placeholder="https://"
-                    {...field}
-                    value={field.value ?? ""}
-                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

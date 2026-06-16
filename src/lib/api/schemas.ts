@@ -6,7 +6,6 @@ export const userUpdateSchema = z.object({
   phone: z.string().nullable().optional(),
   bio: z.string().nullable().optional(),
   tech_stack: z.array(z.string()).optional(),
-  portfolio_url: z.string().url("올바른 URL을 입력해주세요.").nullable().optional(),
   account_status: z.enum(["active", "withdrawn"]).optional(),
   notification_new_project: z.boolean().optional(),
   notification_application_update: z.boolean().optional(),
