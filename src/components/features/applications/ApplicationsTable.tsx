@@ -24,7 +24,7 @@ interface ApplicationItem {
   expected_rate: number | null;
   applied_at: string;
   created_at: string;
-  project: { id: string; title: string } | { id: string; title: string }[] | null;
+  project: { id: string; title: string; business_type: string | null } | { id: string; title: string; business_type: string | null }[] | null;
   profile: { id: string; name: string; email: string } | { id: string; name: string; email: string }[] | null;
 }
 
@@ -66,7 +66,8 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
                   onCheckedChange={(c) => toggleAll(!!c)}
                 />
               </TableHead>
-              <TableHead className="w-16">ID</TableHead>
+              <TableHead className="w-16">SEQ</TableHead>
+              <TableHead className="w-16">SM/SI</TableHead>
               <TableHead>프로젝트</TableHead>
               <TableHead>지원자</TableHead>
               <TableHead>상태</TableHead>
@@ -77,7 +78,7 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
           <TableBody>
             {applications.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7}>
+                <TableCell colSpan={8}>
                   <EmptyState title="지원서가 없습니다." />
                 </TableCell>
               </TableRow>
@@ -96,6 +97,15 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
                     </TableCell>
                     <TableCell>
                       <span className="font-mono text-xs text-muted-foreground">#{app.seq_id}</span>
+                    </TableCell>
+                    <TableCell>
+                      {project?.business_type ? (
+                        <Badge variant="outline" className="uppercase">
+                          {project.business_type}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">-</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Link

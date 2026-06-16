@@ -34,7 +34,7 @@ interface ApplicationItem {
 }
 
 interface ProjectGroup {
-  project: { id: string; title: string; status: string } | { id: string; title: string; status: string }[] | null;
+  project: { id: string; title: string; status: string; business_type: string | null } | { id: string; title: string; status: string; business_type: string | null }[] | null;
   applications: ApplicationItem[];
 }
 
@@ -114,6 +114,11 @@ export function ApplicationsGroupedView({ groups }: ApplicationsGroupedViewProps
                   <div className="flex flex-1 items-center justify-between gap-3 pr-2">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{proj?.title ?? "알 수 없는 프로젝트"}</span>
+                      {proj?.business_type && (
+                        <Badge variant="outline" className="uppercase">
+                          {proj.business_type}
+                        </Badge>
+                      )}
                       {projectStatus && (
                         <Badge variant={projectStatus.color as "default" | "secondary" | "destructive" | "outline"}>
                           {projectStatus.label}
