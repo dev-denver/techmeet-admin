@@ -81,12 +81,13 @@ export function ProjectsTable({ projects, showDeleted }: ProjectsTableProps) {
                   onCheckedChange={(c) => toggleAll(!!c)}
                 />
               </TableHead>
-              <TableHead className="w-28">프로젝트 ID</TableHead>
-              <TableHead>제목 / 설명</TableHead>
+              <TableHead className="w-16">SEQ</TableHead>
+              <TableHead className="w-16">SM/SI</TableHead>
+              <TableHead>제목</TableHead>
               <TableHead>상태</TableHead>
               <TableHead>노출</TableHead>
-              <TableHead>카테고리</TableHead>
               <TableHead>시작일</TableHead>
+              <TableHead>종료일</TableHead>
               <TableHead>등록일</TableHead>
               {showDeleted && <TableHead className="w-20">복구</TableHead>}
             </TableRow>
@@ -94,7 +95,7 @@ export function ProjectsTable({ projects, showDeleted }: ProjectsTableProps) {
           <TableBody>
             {projects.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={showDeleted ? 9 : 8}>
+                <TableCell colSpan={showDeleted ? 10 : 9}>
                   <EmptyState title="프로젝트가 없습니다." />
                 </TableCell>
               </TableRow>
@@ -118,19 +119,21 @@ export function ProjectsTable({ projects, showDeleted }: ProjectsTableProps) {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col gap-0.5">
-                        <Link
-                          href={`/projects/${project.id}`}
-                          className="font-medium hover:underline"
-                        >
-                          {project.title}
-                        </Link>
-                        {project.description && (
-                          <span className="text-xs text-muted-foreground line-clamp-2 max-w-md whitespace-pre-line">
-                            {project.description}
-                          </span>
-                        )}
-                      </div>
+                      {project.business_type ? (
+                        <Badge variant="outline" className="uppercase">
+                          {project.business_type}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        href={`/projects/${project.id}`}
+                        className="font-medium hover:underline"
+                      >
+                        {project.title}
+                      </Link>
                     </TableCell>
                     <TableCell>
                       <Badge variant={statusConfig?.color as "default" | "secondary" | "destructive" | "outline" ?? "secondary"}>
@@ -142,8 +145,8 @@ export function ProjectsTable({ projects, showDeleted }: ProjectsTableProps) {
                         {project.is_visible ? "노출" : "숨김"}
                       </Badge>
                     </TableCell>
-                    <TableCell>{project.category ?? "-"}</TableCell>
                     <TableCell>{formatDate(project.duration_start_date)}</TableCell>
+                    <TableCell>{formatDate(project.duration_end_date)}</TableCell>
                     <TableCell>{formatDate(project.created_at)}</TableCell>
                     {showDeleted && (
                       <TableCell>
