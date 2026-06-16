@@ -45,6 +45,15 @@ export const ADMIN_ROLE = {
 
 export type AdminRole = keyof typeof ADMIN_ROLE;
 
+export const DEPLOYMENT_GRADE = {
+  "초급": { label: "초급", color: "outline" },
+  "중급": { label: "중급", color: "secondary" },
+  "고급": { label: "고급", color: "default" },
+  "특급": { label: "특급", color: "destructive" },
+} as const;
+
+export type DeploymentGradeKey = keyof typeof DEPLOYMENT_GRADE;
+
 export const ALIMTALK_SERVICE_TYPE = {
   project:    { label: "프로젝트", color: "default" },
   notice:     { label: "공지",     color: "secondary" },
