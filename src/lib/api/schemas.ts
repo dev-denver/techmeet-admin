@@ -41,6 +41,7 @@ export const projectCreateSchema = z.object({
   duration_end_date: z.string().min(1, "종료일을 입력해주세요."),
   tech_stack: z.array(z.string()),
   category: z.string().nullable(),
+  business_type: z.enum(["sm", "si"]).nullable(),
   is_visible: z.boolean().default(true),
 }).refine(
   (d) => d.duration_end_date >= d.duration_start_date,
@@ -55,6 +56,7 @@ export const projectUpdateSchema = z.object({
   duration_end_date: z.string().min(1).optional(),
   tech_stack: z.array(z.string()).optional(),
   category: z.string().nullable().optional(),
+  business_type: z.enum(["sm", "si"]).nullable().optional(),
   is_visible: z.boolean().optional(),
 }).refine(
   (d) => {
