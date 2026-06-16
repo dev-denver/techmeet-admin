@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ACCOUNT_STATUS } from "@/lib/constants/status";
-import { formatDateTime } from "@/lib/utils/format";
+import { formatDate, formatDateTime } from "@/lib/utils/format";
 import type { Profile } from "@/types";
 
 const userSchema = z.object({
@@ -110,6 +110,67 @@ export function UserForm({ user }: UserFormProps) {
               <p className="font-medium">{formatDateTime(user.withdrawn_at)}</p>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* 회원가입 시 입력한 프로필 정보 */}
+      <div className="rounded-lg border p-4 space-y-4 bg-muted/30">
+        <p className="text-sm font-medium text-muted-foreground">프로필 정보</p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 text-sm">
+          <div>
+            <span className="text-muted-foreground">생년월일</span>
+            <p className="font-medium">{user.birth_date ? formatDate(user.birth_date) : "-"}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">성별</span>
+            <p className="font-medium">
+              {user.gender === "male" ? "남성" : user.gender === "female" ? "여성" : "-"}
+            </p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">경력</span>
+            <p className="font-medium">
+              {user.experience_years != null
+                ? `${user.experience_years}년 ${user.experience_months}개월`
+                : "-"}
+            </p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">투입 가능 상태</span>
+            <p className="font-medium">
+              {user.availability_status === "available"
+                ? "가능"
+                : user.availability_status === "partial"
+                ? "일부 가능"
+                : user.availability_status === "unavailable"
+                ? "불가"
+                : "-"}
+            </p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">투입 가능 시작일</span>
+            <p className="font-medium">{user.available_from_date ? formatDate(user.available_from_date) : "-"}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">소속사</span>
+            <p className="font-medium">{user.affiliation ?? "-"}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">부서</span>
+            <p className="font-medium">{user.department ?? "-"}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">직함</span>
+            <p className="font-medium">{user.position_title ?? "-"}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">병역</span>
+            <p className="font-medium">{user.military_service ?? "-"}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">주소</span>
+            <p className="font-medium">{user.address ?? "-"}</p>
+          </div>
         </div>
       </div>
 
