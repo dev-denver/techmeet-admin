@@ -33,7 +33,8 @@ export function SiMembersSection({ members }: SiMembersSectionProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-10 text-center">No</TableHead>
+              <TableHead className="w-14 text-center">SEQ</TableHead>
+              <TableHead className="w-16">SM/SI</TableHead>
               <TableHead>사이트</TableHead>
               <TableHead>이름</TableHead>
               <TableHead>프로젝트명</TableHead>
@@ -45,18 +46,19 @@ export function SiMembersSection({ members }: SiMembersSectionProps) {
           <TableBody>
             {members.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                   등록된 SI 인원이 없습니다.
                 </TableCell>
               </TableRow>
             ) : (
-              members.map((m, i) => (
+              members.map((m) => (
                 <TableRow
                   key={m.id}
                   className="cursor-pointer hover:bg-muted/50"
                   onClick={() => setSelected(m)}
                 >
-                  <TableCell className="text-center text-muted-foreground text-xs">{i + 1}</TableCell>
+                  <TableCell className="text-center font-mono text-xs text-muted-foreground">#{m.seq_id}</TableCell>
+                  <TableCell><Badge variant="outline">SI</Badge></TableCell>
                   <TableCell className="font-medium">{m.site}</TableCell>
                   <TableCell>{m.name}</TableCell>
                   <TableCell>{m.project_name}</TableCell>
