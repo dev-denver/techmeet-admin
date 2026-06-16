@@ -36,4 +36,15 @@ export const env = {
       return process.env.KAKAO_ALIMTALK_SENDER_KEY ?? "";
     },
   },
+  sendon: {
+    get id() {
+      return getEnv("SENDON_ID");
+    },
+    get apiKey() {
+      return getEnv("SENDON_API_KEY");
+    },
+    get from() {
+      return getEnv("SENDON_FROM");
+    },
+  },
 };
