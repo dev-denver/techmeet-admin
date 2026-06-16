@@ -164,10 +164,6 @@ export function UserForm({ user }: UserFormProps) {
             <p className="font-medium">{user.position_title ?? "-"}</p>
           </div>
           <div>
-            <span className="text-muted-foreground">병역</span>
-            <p className="font-medium">{user.military_service ?? "-"}</p>
-          </div>
-          <div>
             <span className="text-muted-foreground">주소</span>
             <p className="font-medium">{user.address ?? "-"}</p>
           </div>

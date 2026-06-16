@@ -20,7 +20,6 @@ export interface Profile {
   affiliation: string | null;
   department: string | null;
   position_title: string | null;
-  military_service: string | null;
   address: string | null;
   joining_date: string | null;
   account_status: AccountStatus;
