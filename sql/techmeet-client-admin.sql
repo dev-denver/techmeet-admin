@@ -287,6 +287,8 @@ create table if not exists public.projects (
     check (work_type in ('remote', 'onsite', 'hybrid')),
   location            text,                                                                 -- 근무 위치
   headcount           integer,                                                              -- 모집 인원
+  business_type       text                                                                  -- 사업 구분 (sm/si)
+    check (business_type in ('sm', 'si')),
   is_visible          boolean     not null default true,                                    -- 노출 여부
   created_by          uuid        references public.profiles(id) on delete set null,        -- 등록 관리자 프로필 ID
   seq_id              bigint      generated always as identity unique,                      -- Supabase Realtime 순서 관리 (자동)

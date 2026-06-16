@@ -24,7 +24,7 @@ async function getProjects(params: { q?: string; scope?: string; status?: string
 
   let query = adminClient
     .from("projects")
-    .select("id, seq_id, title, description, status, duration_start_date, category, is_visible, deleted_at, created_at", { count: "exact" });
+    .select("id, seq_id, title, description, status, duration_start_date, duration_end_date, category, business_type, is_visible, deleted_at, created_at", { count: "exact" });
 
   if (showDeleted) {
     query = query.not("deleted_at", "is", null);
