@@ -1,4 +1,5 @@
 export type * from "./project";
+export type * from "./deployment";
 export type * from "./user";
 export type * from "./application";
 export type * from "./notice";

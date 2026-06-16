@@ -12,6 +12,7 @@ import {
   MessageSquare,
   ShieldCheck,
   LogOut,
+  UsersRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ const navItems: { href: string; label: string; icon: React.ElementType; sub?: bo
   { href: "/applications", label: "지원서", icon: FileText },
   { href: "/users", label: "사용자", icon: Users },
   { href: "/users/referrers", label: "추천인 관리", icon: UserCheck, sub: true },
+  { href: "/deployment", label: "투입현황", icon: UsersRound },
   { href: "/alimtalk", label: "알림톡", icon: MessageSquare },
   { href: "/notices", label: "공지사항", icon: Bell },
 ];

@@ -53,6 +53,7 @@ const projectSchema = z.object({
   duration_end_date: z.string().min(1, "종료일을 입력해주세요"),
   tech_stack: z.string(),
   category: z.string().nullable(),
+  business_type: z.enum(["sm", "si"]).nullable(),
   is_visible: z.boolean(),
 }).refine(
   (d) => d.duration_end_date >= d.duration_start_date,
@@ -85,6 +86,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
       duration_end_date: project?.duration_end_date ?? getNextYearString(),
       tech_stack: project?.tech_stack?.join(", ") ?? "",
       category: project?.category ?? null,
+      business_type: project?.business_type ?? null,
       is_visible: project?.is_visible ?? true,
     },
   });
@@ -248,6 +250,32 @@ export function ProjectForm({ project }: ProjectFormProps) {
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="business_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>SM/SI 구분</FormLabel>
+                    <Select
+                      onValueChange={(v) => field.onChange(v === "none" ? null : v)}
+                      value={field.value ?? "none"}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="선택 안 함" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">선택 안 함</SelectItem>
+                        <SelectItem value="sm">SM</SelectItem>
+                        <SelectItem value="si">SI</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField

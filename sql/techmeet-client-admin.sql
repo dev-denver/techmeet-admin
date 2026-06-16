@@ -664,6 +664,63 @@ create policy "본인 계약서류 삭제" on storage.objects
 
 
 -- ============================================================
+-- 투입현황 테이블 (deployment)
+-- ============================================================
+
+create table if not exists public.deployment_sm_members (
+  id          uuid        primary key default gen_random_uuid(),
+  seq_id      bigint      generated always as identity unique,
+  site        text        not null,
+  name        text        not null,
+  part        text        not null,
+  detail_work text        not null,
+  grade       text        not null check (grade in ('초급', '중급', '고급', '특급')),
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+alter table public.deployment_sm_members enable row level security;
+
+create trigger deployment_sm_members_updated_at
+  before update on public.deployment_sm_members
+  for each row execute function public.set_updated_at();
+
+create table if not exists public.deployment_sm_notices (
+  id              uuid        primary key default gen_random_uuid(),
+  seq_id          bigint      generated always as identity unique,
+  site            text        not null,
+  transfer_notice text        not null,
+  notice_date     date        not null,
+  main_manager    text        not null,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
+);
+
+alter table public.deployment_sm_notices enable row level security;
+
+create trigger deployment_sm_notices_updated_at
+  before update on public.deployment_sm_notices
+  for each row execute function public.set_updated_at();
+
+create table if not exists public.deployment_si_members (
+  id           uuid        primary key default gen_random_uuid(),
+  seq_id       bigint      generated always as identity unique,
+  site         text        not null,
+  name         text        not null,
+  project_name text        not null,
+  detail_work  text        not null,
+  grade        text        not null check (grade in ('초급', '중급', '고급', '특급')),
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+
+alter table public.deployment_si_members enable row level security;
+
+create trigger deployment_si_members_updated_at
+  before update on public.deployment_si_members
+  for each row execute function public.set_updated_at();
+
+-- ============================================================
 -- 마스터 관리자 계정 등록
 -- ============================================================
 -- ※ 사전 준비:

@@ -17,6 +17,7 @@ export interface Project {
   headcount: number | null;
   requirements: string[];
   location: string | null;
+  business_type: "sm" | "si" | null;
   is_visible: boolean;
   deleted_at: string | null;
   created_at: string;
@@ -31,7 +32,9 @@ export interface ProjectListItem {
   description: string;
   status: ProjectStatus;
   duration_start_date: string | null;
+  duration_end_date: string | null;
   category: string | null;
+  business_type: "sm" | "si" | null;
   is_visible: boolean;
   deleted_at: string | null;
   created_at: string;
