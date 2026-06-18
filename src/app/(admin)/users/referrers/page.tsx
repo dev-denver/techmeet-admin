@@ -264,7 +264,7 @@ export default async function ReferrersPage({ searchParams }: Props) {
   return (
     <>
       <Header title="추천인 관리" />
-      <main className="flex-1 overflow-y-auto p-6 space-y-6">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
         {/* 통계 카드 */}
         <div className="grid gap-4 sm:grid-cols-3">
           <Card>

@@ -59,7 +59,7 @@ export default async function ProjectDetailPage({
   return (
     <>
       <Header title="프로젝트 상세" />
-      <main className="flex-1 overflow-y-auto p-6">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6">
         {isDeleted && (
           <div className="mb-4 rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             이 프로젝트는 삭제된 상태입니다. 수정이 불가하며, 아래 복구 버튼으로 복원할 수 있습니다.
@@ -78,15 +78,16 @@ export default async function ProjectDetailPage({
           </TabsContent>
 
           <TabsContent value="applications">
-            <div className="rounded-md border">
+            {/* 데스크탑/태블릿: 테이블 */}
+            <div className="hidden rounded-md border md:block">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-16">ID</TableHead>
+                    <TableHead className="hidden w-16 lg:table-cell">ID</TableHead>
                     <TableHead>지원자</TableHead>
-                    <TableHead>이메일</TableHead>
+                    <TableHead className="hidden lg:table-cell">이메일</TableHead>
                     <TableHead>상태</TableHead>
-                    <TableHead>희망 단가</TableHead>
+                    <TableHead className="hidden lg:table-cell">희망 단가</TableHead>
                     <TableHead>지원일</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -103,7 +104,7 @@ export default async function ProjectDetailPage({
                       const profile = Array.isArray(app.profile) ? app.profile[0] : app.profile;
                       return (
                         <TableRow key={app.id}>
-                          <TableCell>
+                          <TableCell className="hidden lg:table-cell">
                             <span className="font-mono text-xs text-muted-foreground">#{app.seq_id}</span>
                           </TableCell>
                           <TableCell>
@@ -114,13 +115,13 @@ export default async function ProjectDetailPage({
                               {profile?.name ?? "-"}
                             </Link>
                           </TableCell>
-                          <TableCell>{profile?.email ?? "-"}</TableCell>
+                          <TableCell className="hidden lg:table-cell">{profile?.email ?? "-"}</TableCell>
                           <TableCell>
                             <Badge variant={statusConfig?.color as "default" | "secondary" | "destructive" | "outline" ?? "secondary"}>
                               {statusConfig?.label ?? app.status}
                             </Badge>
                           </TableCell>
-                          <TableCell>{formatRate(app.expected_rate)}</TableCell>
+                          <TableCell className="hidden lg:table-cell">{formatRate(app.expected_rate)}</TableCell>
                           <TableCell>{formatDate(app.applied_at ?? app.created_at)}</TableCell>
                         </TableRow>
                       );
@@ -128,6 +129,40 @@ export default async function ProjectDetailPage({
                   )}
                 </TableBody>
               </Table>
+            </div>
+
+            {/* 모바일: 카드 리스트 */}
+            <div className="space-y-2 md:hidden">
+              {applications.length === 0 ? (
+                <EmptyState title="지원자가 없습니다." />
+              ) : (
+                applications.map((app) => {
+                  const statusConfig = APPLICATION_STATUS[app.status as keyof typeof APPLICATION_STATUS];
+                  const profile = Array.isArray(app.profile) ? app.profile[0] : app.profile;
+                  return (
+                    <Link
+                      key={app.id}
+                      href={`/applications/${app.id}`}
+                      className="block rounded-md border p-3 active:bg-muted/50"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="font-medium">{profile?.name ?? "-"}</p>
+                          <p className="text-xs text-muted-foreground">{profile?.email ?? "-"}</p>
+                        </div>
+                        <Badge variant={statusConfig?.color as "default" | "secondary" | "destructive" | "outline" ?? "secondary"}>
+                          {statusConfig?.label ?? app.status}
+                        </Badge>
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                        <span className="font-mono">#{app.seq_id}</span>
+                        <span>{formatRate(app.expected_rate)}</span>
+                        <span>{formatDate(app.applied_at ?? app.created_at)}</span>
+                      </div>
+                    </Link>
+                  );
+                })
+              )}
             </div>
           </TabsContent>
         </Tabs>

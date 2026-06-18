@@ -29,17 +29,18 @@ export function SmNoticesSection({ notices }: SmNoticesSectionProps) {
         <SmNoticeCreateDialog />
       </div>
 
-      <div className="rounded-md border overflow-x-auto">
+      {/* 데스크탑/태블릿: 테이블 */}
+      <div className="hidden rounded-md border md:block">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-14 text-center">SEQ</TableHead>
-              <TableHead className="w-16">SM/SI</TableHead>
+              <TableHead className="hidden w-14 text-center lg:table-cell">SEQ</TableHead>
+              <TableHead className="hidden w-16 lg:table-cell">SM/SI</TableHead>
               <TableHead>사이트</TableHead>
               <TableHead>주요이관사항</TableHead>
               <TableHead>날짜</TableHead>
               <TableHead>주 담당자</TableHead>
-              <TableHead>등록일</TableHead>
+              <TableHead className="hidden lg:table-cell">등록일</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -56,13 +57,13 @@ export function SmNoticesSection({ notices }: SmNoticesSectionProps) {
                   className="cursor-pointer hover:bg-muted/50"
                   onClick={() => setSelected(n)}
                 >
-                  <TableCell className="text-center font-mono text-xs text-muted-foreground">#{n.seq_id}</TableCell>
-                  <TableCell><Badge variant="outline">SM</Badge></TableCell>
+                  <TableCell className="hidden text-center font-mono text-xs text-muted-foreground lg:table-cell">#{n.seq_id}</TableCell>
+                  <TableCell className="hidden lg:table-cell"><Badge variant="outline">SM</Badge></TableCell>
                   <TableCell className="font-medium">{n.site}</TableCell>
                   <TableCell className="max-w-xs truncate">{n.transfer_notice}</TableCell>
                   <TableCell>{format(new Date(n.notice_date), "yyyy.MM.dd")}</TableCell>
                   <TableCell>{n.main_manager}</TableCell>
-                  <TableCell className="text-muted-foreground text-xs">
+                  <TableCell className="hidden text-muted-foreground text-xs lg:table-cell">
                     {format(new Date(n.created_at), "yyyy.MM.dd")}
                   </TableCell>
                 </TableRow>
@@ -70,6 +71,33 @@ export function SmNoticesSection({ notices }: SmNoticesSectionProps) {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* 모바일: 카드 리스트 */}
+      <div className="space-y-2 md:hidden">
+        {notices.length === 0 ? (
+          <p className="rounded-md border p-6 text-center text-sm text-muted-foreground">
+            등록된 이관공지가 없습니다.
+          </p>
+        ) : (
+          notices.map((n) => (
+            <button
+              key={n.id}
+              type="button"
+              onClick={() => setSelected(n)}
+              className="w-full rounded-md border p-3 text-left active:bg-muted/50"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-medium">{n.site}</span>
+                <span className="text-xs text-muted-foreground">{format(new Date(n.notice_date), "yyyy.MM.dd")}</span>
+              </div>
+              <div className="mt-1 line-clamp-2 text-sm text-muted-foreground">{n.transfer_notice}</div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                담당 {n.main_manager} · #{n.seq_id}
+              </div>
+            </button>
+          ))
+        )}
       </div>
 
       <SmNoticeEditDialog

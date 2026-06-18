@@ -70,7 +70,7 @@ export default async function AuditLogsPage({ searchParams }: Props) {
   return (
     <>
       <Header title="활동 로그" />
-      <main className="flex-1 overflow-y-auto p-6">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6">
         <div className="flex items-center justify-between mb-4">
           <Suspense>
             <ListFilter
@@ -96,15 +96,16 @@ export default async function AuditLogsPage({ searchParams }: Props) {
           </Suspense>
         </div>
 
-        <div className="rounded-md border">
+        {/* 데스크탑/태블릿: 테이블 */}
+        <div className="hidden rounded-md border md:block">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>관리자</TableHead>
                 <TableHead>액션</TableHead>
                 <TableHead>대상</TableHead>
-                <TableHead>대상 ID</TableHead>
-                <TableHead>상세</TableHead>
+                <TableHead className="hidden lg:table-cell">대상 ID</TableHead>
+                <TableHead className="hidden xl:table-cell">상세</TableHead>
                 <TableHead>일시</TableHead>
               </TableRow>
             </TableHeader>
@@ -127,12 +128,12 @@ export default async function AuditLogsPage({ searchParams }: Props) {
                         </Badge>
                       </TableCell>
                       <TableCell>{RESOURCE_LABELS[log.resource] ?? log.resource}</TableCell>
-                      <TableCell>
+                      <TableCell className="hidden lg:table-cell">
                         <span className="text-xs text-muted-foreground font-mono">
                           {log.resource_id ? `${log.resource_id.slice(0, 8)}...` : "-"}
                         </span>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden xl:table-cell">
                         {log.details ? (
                           <span className="text-xs text-muted-foreground max-w-[200px] truncate block">
                             {JSON.stringify(log.details).slice(0, 50)}
@@ -147,6 +148,40 @@ export default async function AuditLogsPage({ searchParams }: Props) {
               )}
             </TableBody>
           </Table>
+        </div>
+
+        {/* 모바일: 카드 리스트 */}
+        <div className="space-y-2 md:hidden">
+          {logs.length === 0 ? (
+            <EmptyState title="활동 로그가 없습니다." />
+          ) : (
+            logs.map((log) => {
+              const actionConfig = ACTION_LABELS[log.action];
+              return (
+                <div key={log.id} className="rounded-md border p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="font-medium">{log.admin_name}</span>
+                    <Badge variant={actionConfig?.color as "default" | "secondary" | "destructive" ?? "secondary"}>
+                      {actionConfig?.label ?? log.action}
+                    </Badge>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {RESOURCE_LABELS[log.resource] ?? log.resource}
+                    {log.resource_id && (
+                      <span className="ml-1 font-mono text-xs">#{log.resource_id.slice(0, 8)}...</span>
+                    )}
+                  </p>
+                  {log.details && (
+                    <p className="mt-1 truncate text-xs text-muted-foreground">
+                      {JSON.stringify(log.details).slice(0, 50)}
+                      {JSON.stringify(log.details).length > 50 ? "..." : ""}
+                    </p>
+                  )}
+                  <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(log.created_at)}</p>
+                </div>
+              );
+            })
+          )}
         </div>
 
         <Suspense>

@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { Sidebar } from "@/components/layout/Sidebar";
+import { AdminShell } from "@/components/layout/AdminShell";
+import { SIDEBAR_COOKIE } from "@/components/layout/sidebar-context";
 import { Toaster } from "@/components/ui/sonner";
 
 export default async function AdminRootLayout({
@@ -40,18 +42,18 @@ export default async function AdminRootLayout({
     redirect("/login?error=unauthorized");
   }
 
-  return (
-    <div className="flex h-screen overflow-hidden">
-      {/* 데스크탑 사이드바 */}
-      <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
-        <Sidebar adminRole={adminUser.role as "superadmin" | "admin"} />
-      </aside>
+  const cookieStore = await cookies();
+  const defaultCollapsed = cookieStore.get(SIDEBAR_COOKIE)?.value === "true";
 
-      {/* 메인 콘텐츠 영역 - 사이드바 너비만큼 패딩 */}
-      <div className="flex flex-col flex-1 md:pl-64 min-h-screen">
+  return (
+    <>
+      <AdminShell
+        adminRole={adminUser.role as "superadmin" | "admin"}
+        defaultCollapsed={defaultCollapsed}
+      >
         {children}
-      </div>
+      </AdminShell>
       <Toaster position="top-center" richColors />
-    </div>
+    </>
   );
 }
