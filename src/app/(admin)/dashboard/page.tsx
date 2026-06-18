@@ -12,7 +12,6 @@ import {
   Bell,
   TrendingUp,
   UserPlus,
-  ClipboardList,
   CalendarClock,
   ArrowRight,
   Upload,
@@ -78,7 +77,6 @@ async function getFeeds() {
   const [
     recentUsersResult,
     recentApplicationsResult,
-    recentAuditResult,
     recentResumesResult,
     expiringAppsResult,
   ] = await Promise.all([
@@ -88,10 +86,6 @@ async function getFeeds() {
       .limit(5),
     db.from("applications")
       .select("id, status, created_at, profiles(name), projects(title)")
-      .order("created_at", { ascending: false })
-      .limit(5),
-    db.from("admin_audit_logs")
-      .select("id, admin_name, action, resource, created_at")
       .order("created_at", { ascending: false })
       .limit(5),
     db.from("profile_resumes")
@@ -129,29 +123,12 @@ async function getFeeds() {
   return {
     recentUsers: recentUsersResult.data ?? [],
     recentApplications: recentApplicationsResult.data ?? [],
-    recentAuditLogs: recentAuditResult.data ?? [],
     recentResumes: recentResumesResult.data ?? [],
     expiringDevs,
   };
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-
-const ACTION_LABELS: Record<string, string> = {
-  create: "생성",
-  update: "수정",
-  delete: "삭제",
-  bulk_update: "일괄수정",
-  bulk_delete: "일괄삭제",
-};
-
-const RESOURCE_LABELS: Record<string, string> = {
-  users: "사용자",
-  projects: "프로젝트",
-  applications: "지원서",
-  notices: "공지사항",
-  admins: "관리자",
-};
 
 const STATUS_BAR_COLORS: Record<string, string> = {
   recruiting: "bg-blue-500",
@@ -172,7 +149,7 @@ function calcDaysLeft(dateStr: string): number {
 function FeedsSkeleton() {
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      {Array.from({ length: 5 }).map((_, i) => (
+      {Array.from({ length: 4 }).map((_, i) => (
         <Card key={i}>
           <CardHeader className="pb-3">
             <Skeleton className="h-4 w-36" />
@@ -197,7 +174,7 @@ function FeedsSkeleton() {
 // ── Feeds section (deferred via Suspense) ─────────────────────────────────────
 
 async function DashboardFeeds() {
-  const { recentUsers, recentApplications, recentAuditLogs, recentResumes, expiringDevs } =
+  const { recentUsers, recentApplications, recentResumes, expiringDevs } =
     await getFeeds();
 
   return (
@@ -408,45 +385,6 @@ async function DashboardFeeds() {
         </CardContent>
       </Card>
 
-      {/* 최근 관리자 활동 */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-3">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <ClipboardList className="h-4 w-4 text-muted-foreground" />
-            최근 관리자 활동
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {recentAuditLogs.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">활동 로그가 없습니다.</p>
-          ) : (
-            <div className="space-y-3">
-              {recentAuditLogs.map(
-                (log: {
-                  id: string;
-                  admin_name: string;
-                  action: string;
-                  resource: string;
-                  created_at: string;
-                }) => (
-                  <div key={log.id} className="flex items-center justify-between gap-2">
-                    <p className="text-sm min-w-0 truncate">
-                      <span className="font-medium">{log.admin_name}</span>
-                      <span className="text-muted-foreground">
-                        {" "}님이 {RESOURCE_LABELS[log.resource] ?? log.resource}{" "}
-                        {ACTION_LABELS[log.action] ?? log.action}
-                      </span>
-                    </p>
-                    <span className="text-xs text-muted-foreground shrink-0">
-                      {formatRelativeTime(log.created_at)}
-                    </span>
-                  </div>
-                )
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }
