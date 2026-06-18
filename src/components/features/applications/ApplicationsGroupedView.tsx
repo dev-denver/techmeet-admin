@@ -137,7 +137,8 @@ export function ApplicationsGroupedView({ groups }: ApplicationsGroupedViewProps
                       프로젝트 상세보기 →
                     </Link>
                   )}
-                  <Table>
+                  {/* 데스크탑/태블릿: 테이블 */}
+                  <Table className="hidden md:table">
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-10">
@@ -146,10 +147,10 @@ export function ApplicationsGroupedView({ groups }: ApplicationsGroupedViewProps
                             onCheckedChange={(c) => toggleGroup(groupIds, !!c)}
                           />
                         </TableHead>
-                        <TableHead className="w-16">ID</TableHead>
+                        <TableHead className="hidden w-16 lg:table-cell">ID</TableHead>
                         <TableHead>지원자</TableHead>
                         <TableHead>상태</TableHead>
-                        <TableHead>희망 단가</TableHead>
+                        <TableHead className="hidden lg:table-cell">희망 단가</TableHead>
                         <TableHead>지원일</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -165,7 +166,7 @@ export function ApplicationsGroupedView({ groups }: ApplicationsGroupedViewProps
                                 onCheckedChange={(c) => toggleOne(app.id, !!c)}
                               />
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="hidden lg:table-cell">
                               <span className="font-mono text-xs text-muted-foreground">#{app.seq_id}</span>
                             </TableCell>
                             <TableCell>
@@ -181,13 +182,51 @@ export function ApplicationsGroupedView({ groups }: ApplicationsGroupedViewProps
                                 {statusConfig?.label ?? app.status}
                               </Badge>
                             </TableCell>
-                            <TableCell>{formatRate(app.expected_rate)}</TableCell>
+                            <TableCell className="hidden lg:table-cell">{formatRate(app.expected_rate)}</TableCell>
                             <TableCell>{formatDate(app.applied_at ?? app.created_at)}</TableCell>
                           </TableRow>
                         );
                       })}
                     </TableBody>
                   </Table>
+
+                  {/* 모바일: 카드 리스트 */}
+                  <div className="space-y-2 p-2 md:hidden">
+                    {applications.map((app) => {
+                      const statusConfig = APPLICATION_STATUS[app.status as keyof typeof APPLICATION_STATUS];
+                      const profile = Array.isArray(app.profile) ? app.profile[0] : app.profile;
+                      return (
+                        <div key={app.id} className="rounded-md border p-3">
+                          <div className="flex items-start gap-3">
+                            <Checkbox
+                              className="mt-1 shrink-0"
+                              checked={selected.includes(app.id)}
+                              onCheckedChange={(c) => toggleOne(app.id, !!c)}
+                            />
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-start justify-between gap-2">
+                                <Link href={`/applications/${app.id}`} className="font-medium hover:underline">
+                                  {profile?.name ?? "-"}
+                                </Link>
+                                <Badge
+                                  variant={statusConfig?.color as "default" | "secondary" | "destructive" | "outline" ?? "secondary"}
+                                  className="shrink-0"
+                                >
+                                  {statusConfig?.label ?? app.status}
+                                </Badge>
+                              </div>
+                              <p className="text-xs text-muted-foreground">{profile?.email}</p>
+                              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                                <span className="font-mono">#{app.seq_id}</span>
+                                <span>{formatRate(app.expected_rate)}</span>
+                                <span>{formatDate(app.applied_at ?? app.created_at)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </AccordionContent>
               </AccordionItem>
             );

@@ -85,7 +85,7 @@ export default async function UsersPage({ searchParams }: Props) {
   return (
     <>
       <Header title="사용자" />
-      <main className="flex-1 overflow-y-auto p-6">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6">
         <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
           <Suspense>
             <ListFilter
@@ -116,9 +116,9 @@ export default async function UsersPage({ searchParams }: Props) {
               <TableRow>
                 <TableHead className="w-14">ID</TableHead>
                 <TableHead className="w-32">이름</TableHead>
-                <TableHead className="w-36">전화번호</TableHead>
-                <TableHead className="w-52">기술스택</TableHead>
-                <TableHead className="w-44">투입 프로젝트</TableHead>
+                <TableHead className="hidden w-36 lg:table-cell">전화번호</TableHead>
+                <TableHead className="hidden w-52 xl:table-cell">기술스택</TableHead>
+                <TableHead className="hidden w-44 lg:table-cell">투입 프로젝트</TableHead>
                 <TableHead className="w-24">상태</TableHead>
                 <TableHead className="w-28">가입일</TableHead>
                 <TableHead className="w-12 text-center">메모</TableHead>
@@ -147,8 +147,8 @@ export default async function UsersPage({ searchParams }: Props) {
                           {user.name}
                         </Link>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{user.phone ?? "-"}</TableCell>
-                      <TableCell>
+                      <TableCell className="hidden text-muted-foreground lg:table-cell">{user.phone ?? "-"}</TableCell>
+                      <TableCell className="hidden xl:table-cell">
                         <div className="flex flex-wrap gap-1">
                           {user.tech_stack?.slice(0, 3).map((skill: string) => (
                             <span key={skill} className="text-xs bg-muted rounded px-1.5 py-0.5">{skill}</span>
@@ -161,7 +161,7 @@ export default async function UsersPage({ searchParams }: Props) {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="text-muted-foreground truncate max-w-0">
+                      <TableCell className="hidden max-w-0 truncate text-muted-foreground lg:table-cell">
                         <span className="block truncate">{user.project_count ?? "-"}</span>
                       </TableCell>
                       <TableCell>

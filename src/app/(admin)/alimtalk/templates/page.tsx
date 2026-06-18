@@ -56,7 +56,7 @@ export default async function AlimtalkTemplatesPage({ searchParams }: Props) {
   return (
     <>
       <Header title="알림톡" />
-      <main className="flex-1 overflow-y-auto p-6">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6">
         <AlimtalkNav />
 
         <div className="flex items-center justify-between mb-4">
@@ -91,17 +91,18 @@ export default async function AlimtalkTemplatesPage({ searchParams }: Props) {
           </Button>
         </div>
 
-        <div className="rounded-md border">
+        {/* 데스크탑/태블릿: 테이블 */}
+        <div className="hidden rounded-md border md:block">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-16">ID</TableHead>
+                <TableHead className="hidden w-16 lg:table-cell">ID</TableHead>
                 <TableHead>코드</TableHead>
                 <TableHead>이름</TableHead>
                 <TableHead>유형</TableHead>
-                <TableHead>변수</TableHead>
+                <TableHead className="hidden xl:table-cell">변수</TableHead>
                 <TableHead>활성화</TableHead>
-                <TableHead>등록일</TableHead>
+                <TableHead className="hidden lg:table-cell">등록일</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -114,7 +115,7 @@ export default async function AlimtalkTemplatesPage({ searchParams }: Props) {
               ) : (
                 templates.map((t) => (
                   <TableRow key={t.id}>
-                    <TableCell>
+                    <TableCell className="hidden lg:table-cell">
                       <span className="font-mono text-xs text-muted-foreground">#{t.seq_id}</span>
                     </TableCell>
                     <TableCell>
@@ -128,7 +129,7 @@ export default async function AlimtalkTemplatesPage({ searchParams }: Props) {
                         {ALIMTALK_SERVICE_TYPE[t.service_type]?.label ?? t.service_type}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden xl:table-cell">
                       {t.variables.length > 0 ? (
                         <span className="text-xs text-muted-foreground">{t.variables.join(", ")}</span>
                       ) : (
@@ -140,12 +141,43 @@ export default async function AlimtalkTemplatesPage({ searchParams }: Props) {
                         {t.is_active ? "활성" : "비활성"}
                       </Badge>
                     </TableCell>
-                    <TableCell>{formatDate(t.created_at)}</TableCell>
+                    <TableCell className="hidden lg:table-cell">{formatDate(t.created_at)}</TableCell>
                   </TableRow>
                 ))
               )}
             </TableBody>
           </Table>
+        </div>
+
+        {/* 모바일: 카드 리스트 */}
+        <div className="space-y-2 md:hidden">
+          {templates.length === 0 ? (
+            <EmptyState title="등록된 템플릿이 없습니다." />
+          ) : (
+            templates.map((t) => (
+              <Link
+                key={t.id}
+                href={`/alimtalk/templates/${t.id}`}
+                className="block rounded-md border p-3 active:bg-muted/50"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="font-medium">{t.name}</p>
+                    <p className="font-mono text-xs text-muted-foreground">{t.code}</p>
+                  </div>
+                  <Badge variant={t.is_active ? "default" : "secondary"}>
+                    {t.is_active ? "활성" : "비활성"}
+                  </Badge>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                  <Badge variant={ALIMTALK_SERVICE_TYPE[t.service_type]?.color as "default" | "secondary" | "outline" ?? "outline"} className="text-[10px]">
+                    {ALIMTALK_SERVICE_TYPE[t.service_type]?.label ?? t.service_type}
+                  </Badge>
+                  <span>{formatDate(t.created_at)}</span>
+                </div>
+              </Link>
+            ))
+          )}
         </div>
 
         <Suspense>

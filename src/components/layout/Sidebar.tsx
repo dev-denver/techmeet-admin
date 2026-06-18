@@ -31,9 +31,11 @@ const navItems: { href: string; label: string; icon: React.ElementType; sub?: bo
 interface SidebarProps {
   onClose?: () => void;
   adminRole?: "superadmin" | "admin";
+  /** 데스크탑에서 아이콘만 표시하는 접힘 상태 (모바일 시트에서는 항상 false) */
+  collapsed?: boolean;
 }
 
-export function Sidebar({ onClose, adminRole }: SidebarProps) {
+export function Sidebar({ onClose, adminRole, collapsed = false }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -46,13 +48,19 @@ export function Sidebar({ onClose, adminRole }: SidebarProps) {
   return (
     <div className="flex h-full flex-col bg-zinc-950 text-zinc-100">
       {/* 로고 */}
-      <div className="flex h-16 items-center px-6 border-b border-zinc-800">
+      <div
+        className={cn(
+          "flex h-16 items-center border-b border-zinc-800",
+          collapsed ? "justify-center px-2" : "px-6"
+        )}
+      >
         <Link
           href="/dashboard"
-          className="text-lg font-bold tracking-tight"
+          className="font-bold tracking-tight"
           onClick={onClose}
+          title="TechMeet Admin"
         >
-          TechMeet Admin
+          {collapsed ? <span className="text-lg">TM</span> : <span className="text-lg">TechMeet Admin</span>}
         </Link>
       </div>
 
@@ -71,16 +79,17 @@ export function Sidebar({ onClose, adminRole }: SidebarProps) {
               key={item.href}
               href={item.href}
               onClick={onClose}
+              title={collapsed ? item.label : undefined}
               className={cn(
                 "flex items-center gap-3 rounded-md py-2 text-sm font-medium transition-colors",
-                item.sub ? "pl-8 pr-3" : "px-3",
+                collapsed ? "justify-center px-2" : item.sub ? "pl-8 pr-3" : "px-3",
                 isActive
                   ? "bg-zinc-800 text-white"
                   : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
-              {item.label}
+              {!collapsed && item.label}
             </Link>
           );
         })}
@@ -88,15 +97,17 @@ export function Sidebar({ onClose, adminRole }: SidebarProps) {
           <Link
             href="/admins"
             onClick={onClose}
+            title={collapsed ? "관리자 관리" : undefined}
             className={cn(
-              "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              "flex items-center gap-3 rounded-md py-2 text-sm font-medium transition-colors",
+              collapsed ? "justify-center px-2" : "px-3",
               pathname === "/admins" || pathname.startsWith("/admins/")
                 ? "bg-zinc-800 text-white"
                 : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
             )}
           >
             <ShieldCheck className="h-4 w-4 shrink-0" />
-            관리자 관리
+            {!collapsed && "관리자 관리"}
           </Link>
         )}
       </nav>
@@ -105,11 +116,15 @@ export function Sidebar({ onClose, adminRole }: SidebarProps) {
       <div className="px-3 py-4 border-t border-zinc-800">
         <Button
           variant="ghost"
-          className="w-full justify-start gap-3 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+          title={collapsed ? "로그아웃" : undefined}
+          className={cn(
+            "w-full gap-3 text-zinc-400 hover:bg-zinc-800 hover:text-white",
+            collapsed ? "justify-center px-2" : "justify-start"
+          )}
           onClick={handleLogout}
         >
-          <LogOut className="h-4 w-4" />
-          로그아웃
+          <LogOut className="h-4 w-4 shrink-0" />
+          {!collapsed && "로그아웃"}
         </Button>
       </div>
     </div>

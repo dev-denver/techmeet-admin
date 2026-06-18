@@ -56,7 +56,8 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
         exportType="applications"
       />
 
-      <div className="rounded-md border">
+      {/* 데스크탑/태블릿: 테이블 */}
+      <div className="hidden rounded-md border md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -66,13 +67,13 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
                   onCheckedChange={(c) => toggleAll(!!c)}
                 />
               </TableHead>
-              <TableHead className="w-16">SEQ</TableHead>
-              <TableHead className="w-16">SM/SI</TableHead>
+              <TableHead className="hidden w-16 lg:table-cell">SEQ</TableHead>
+              <TableHead className="hidden w-16 lg:table-cell">SM/SI</TableHead>
               <TableHead>프로젝트</TableHead>
               <TableHead>지원자</TableHead>
               <TableHead>상태</TableHead>
-              <TableHead>희망 단가</TableHead>
-              <TableHead>지원일</TableHead>
+              <TableHead className="hidden xl:table-cell">희망 단가</TableHead>
+              <TableHead className="hidden lg:table-cell">지원일</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -95,10 +96,10 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
                         onCheckedChange={(c) => toggleOne(app.id, !!c)}
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden lg:table-cell">
                       <span className="font-mono text-xs text-muted-foreground">#{app.seq_id}</span>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden lg:table-cell">
                       {project?.business_type ? (
                         <Badge variant="outline" className="uppercase">
                           {project.business_type}
@@ -128,14 +129,63 @@ export function ApplicationsTable({ applications }: ApplicationsTableProps) {
                         {statusConfig?.label ?? app.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{formatRate(app.expected_rate)}</TableCell>
-                    <TableCell>{formatDate(app.applied_at ?? app.created_at)}</TableCell>
+                    <TableCell className="hidden xl:table-cell">{formatRate(app.expected_rate)}</TableCell>
+                    <TableCell className="hidden lg:table-cell">{formatDate(app.applied_at ?? app.created_at)}</TableCell>
                   </TableRow>
                 );
               })
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* 모바일: 카드 리스트 */}
+      <div className="space-y-2 md:hidden">
+        {applications.length === 0 ? (
+          <EmptyState title="지원서가 없습니다." />
+        ) : (
+          applications.map((app) => {
+            const statusConfig = APPLICATION_STATUS[app.status as keyof typeof APPLICATION_STATUS];
+            const project = Array.isArray(app.project) ? app.project[0] : app.project;
+            const profile = Array.isArray(app.profile) ? app.profile[0] : app.profile;
+            return (
+              <div key={app.id} className="rounded-md border p-3">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    className="mt-1 shrink-0"
+                    checked={selected.includes(app.id)}
+                    onCheckedChange={(c) => toggleOne(app.id, !!c)}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <Link
+                        href={`/applications/${app.id}`}
+                        className="font-medium hover:underline"
+                      >
+                        {project?.title ?? "-"}
+                      </Link>
+                      <Badge
+                        variant={statusConfig?.color as "default" | "secondary" | "destructive" | "outline" ?? "secondary"}
+                        className="shrink-0"
+                      >
+                        {statusConfig?.label ?? app.status}
+                      </Badge>
+                    </div>
+                    <p className="mt-1 text-sm">{profile?.name ?? "-"}</p>
+                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      <span className="font-mono">#{app.seq_id}</span>
+                      {project?.business_type && (
+                        <span className="uppercase">{project.business_type}</span>
+                      )}
+                      <span>{formatRate(app.expected_rate)}</span>
+                      <span>{formatDate(app.applied_at ?? app.created_at)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

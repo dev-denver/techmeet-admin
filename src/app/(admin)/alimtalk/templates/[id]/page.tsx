@@ -23,7 +23,7 @@ export default async function AlimtalkTemplateDetailPage({ params }: Props) {
   return (
     <>
       <Header title="템플릿 수정" />
-      <main className="flex-1 overflow-y-auto p-6 max-w-2xl">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 max-w-2xl">
         <AlimtalkTemplateForm template={data as AlimtalkTemplate} />
       </main>
     </>

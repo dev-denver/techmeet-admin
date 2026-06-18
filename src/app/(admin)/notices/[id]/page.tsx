@@ -27,7 +27,7 @@ export default async function NoticeDetailPage({
   return (
     <>
       <Header title="공지사항 수정" />
-      <main className="flex-1 overflow-y-auto p-6 max-w-4xl">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 max-w-4xl">
         <NoticeForm notice={notice} />
       </main>
     </>

@@ -516,7 +516,7 @@ export default async function DashboardPage() {
   return (
     <>
       <Header title="대시보드" />
-      <main className="flex-1 overflow-y-auto p-6 space-y-6">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
 
         {/* 통계 카드 */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
