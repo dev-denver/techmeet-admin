@@ -143,7 +143,7 @@ export function AlimtalkSendForm() {
                   <CharCounter length={field.value.length} max={CONTENT_MAX} />
                 </div>
                 <FormControl>
-                  <Textarea placeholder="발송할 내용을 입력해주세요" rows={8} {...field} />
+                  <Textarea placeholder="발송할 내용을 입력해주세요" rows={14} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -241,12 +241,12 @@ export function AlimtalkSendForm() {
             <CardTitle className="text-sm">발송 미리보기</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-2xl border bg-card p-3 shadow-sm">
+            <div className="rounded-2xl border bg-card p-4 shadow-sm">
               <div className="flex items-center justify-between border-b pb-2 text-xs text-muted-foreground">
                 <span>문자메시지</span>
                 <span>{sendType === "immediate" ? "지금" : formatDateTime(scheduledAt)}</span>
               </div>
-              <div className="mt-3 rounded-xl bg-muted p-3">
+              <div className="mt-3 rounded-xl bg-muted p-4">
                 <p className="break-words font-semibold leading-snug">
                   {title || <span className="text-muted-foreground">제목을 입력해주세요</span>}
                 </p>
