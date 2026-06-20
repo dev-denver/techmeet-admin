@@ -15,7 +15,8 @@ function createClient() {
 export async function sendSms(
   to: string,
   message: string,
-  scheduledAt?: string | null
+  scheduledAt?: string | null,
+  title?: string
 ): Promise<SmsSendResult> {
   const client = createClient();
   const res = await client.sms.send({
@@ -23,6 +24,7 @@ export async function sendSms(
     from: env.sendon.from,
     to: [to],
     message,
+    ...(title ? { title } : {}),
     ...(scheduledAt ? { reservation: { datetime: scheduledAt } } : {}),
   });
   const success = res.code === 200;

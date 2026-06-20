@@ -113,33 +113,14 @@ export const adminCreateSchema = z.object({
 
 export type AdminCreateInput = z.infer<typeof adminCreateSchema>;
 
-// ── Alimtalk Templates ──
-export const alimtalkTemplateCreateSchema = z.object({
-  code:         z.string().min(1).max(100).regex(/^[A-Z0-9_]+$/, "대문자·숫자·언더스코어만 사용 가능합니다."),
-  name:         z.string().min(1, "템플릿 이름을 입력해주세요.").max(200),
-  body:         z.string().min(1, "본문을 입력해주세요."),
-  variables:    z.array(z.string()).default([]),
-  service_type: z.enum(["project", "notice", "individual", "all"]),
-  is_active:    z.boolean().default(true),
-});
-
-export const alimtalkTemplateUpdateSchema = alimtalkTemplateCreateSchema.partial().omit({ code: true });
-
-export type AlimtalkTemplateCreateInput = z.infer<typeof alimtalkTemplateCreateSchema>;
-export type AlimtalkTemplateUpdateInput = z.infer<typeof alimtalkTemplateUpdateSchema>;
-
-// ── Alimtalk Send (template_id 기반) ──
+// ── Alimtalk Send ──
 export const alimtalkSendSchema = z.object({
-  template_id:  z.string().uuid("템플릿을 선택해주세요."),
-  service_type: z.enum(["project", "notice", "individual"]),
+  title:        z.string().min(1, "제목을 입력해주세요.").max(100, "제목은 최대 100자입니다."),
+  content:      z.string().min(1, "내용을 입력해주세요.").max(2000, "내용은 최대 2000자입니다."),
   send_type:    z.enum(["immediate", "scheduled"]),
   scheduled_at: z.string().nullable().optional(),
-  target:       z.enum(["all", "individual"]),
-  user_id:      z.string().uuid().optional(),
+  user_ids:     z.array(z.string().uuid()).min(1, "발송 대상자를 1명 이상 선택해주세요."),
 }).refine(
-  (d) => d.target !== "individual" || d.user_id,
-  { message: "개별 발송 시 사용자를 선택해주세요.", path: ["user_id"] }
-).refine(
   (d) => d.send_type !== "scheduled" || d.scheduled_at,
   { message: "예약 발송 시 발송 시간을 입력해주세요.", path: ["scheduled_at"] }
 );

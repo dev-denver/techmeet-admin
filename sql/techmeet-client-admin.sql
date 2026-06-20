@@ -16,10 +16,9 @@
 --   [CLIENT]  8. applications      — 지원 내역 / client CRUD (projects FK로 인해 SHARED 이후 정의)
 --
 --   [ADMIN]   9. admin_users       — 관리자 계정
---            10. alimtalk_templates — 카카오 알림톡 서식
---            11. alimtalk_logs     — 카카오 알림톡 발송 이력
---            12. admin_audit_logs  — 관리자 감사 로그
---            13. user_admin_memos  — 관리자 전용 사용자 메모
+--            10. alimtalk_logs     — 알림톡/SMS 발송 이력
+--            11. admin_audit_logs  — 관리자 감사 로그
+--            12. user_admin_memos  — 관리자 전용 사용자 메모
 --
 -- 설계 원칙:
 --   - profiles.id = auth.users.id (client 코드 호환)
@@ -457,40 +456,14 @@ create trigger admin_users_updated_at
 
 
 -- ------------------------------------------------------------
--- 10. alimtalk_templates (카카오 알림톡 서식)
--- ------------------------------------------------------------
-create table if not exists public.alimtalk_templates (
-  id           uuid        default gen_random_uuid() primary key,                           -- 고유 식별자
-  code         text        not null unique,                                                 -- 서식 코드 (고유)
-  name         text        not null,                                                        -- 서식명
-  body         text        not null default '',                                             -- 메시지 본문 템플릿
-  variables    text[]      not null default array[]::text[],                                -- 치환 변수 목록
-  service_type text        not null                                                         -- 발송 대상 유형 (project/notice/individual/all)
-    check (service_type in ('project', 'notice', 'individual', 'all')),
-  is_active    boolean     not null default true,                                           -- 사용 여부
-  seq_id       bigint      generated always as identity unique,                             -- Supabase Realtime 순서 관리 (자동)
-  created_at   timestamptz not null default now(),                                          -- 생성 일시
-  updated_at   timestamptz not null default now()                                           -- 수정 일시
-);
-
-alter table public.alimtalk_templates enable row level security;
--- service_role 전용
-
-create trigger alimtalk_templates_updated_at
-  before update on public.alimtalk_templates
-  for each row execute function public.set_updated_at();
-
-
--- ------------------------------------------------------------
--- 11. alimtalk_logs (카카오 알림톡 발송 이력)
+-- 10. alimtalk_logs (알림톡/SMS 발송 이력)
 -- ------------------------------------------------------------
 create table if not exists public.alimtalk_logs (
   id            uuid        default gen_random_uuid() primary key,                          -- 고유 식별자
   user_id       uuid        references public.profiles(id) on delete set null,              -- 수신자 프로필 ID
-  template_code text        not null,                                                       -- 사용 서식 코드
-  template_name text        not null,                                                       -- 사용 서식명
-  service_type  text        not null check (service_type in ('project', 'notice', 'individual')), -- 발송 유형
-  message_id    text,                                                                       -- 카카오 메시지 ID
+  title         text        not null,                                                       -- 발송 제목
+  content       text        not null,                                                       -- 발송 내용
+  message_id    text,                                                                       -- 발송 메시지 ID
   send_type     text        not null default 'immediate'                                    -- 발송 방식 (immediate/scheduled)
     check (send_type in ('immediate', 'scheduled')),
   scheduled_at  timestamptz,                                                                -- 예약 발송 일시
@@ -506,13 +479,6 @@ alter table public.alimtalk_logs enable row level security;
 -- 본인 수신 이력 조회 허용
 create policy "alimtalk_logs_select_own" on public.alimtalk_logs
   for select using (user_id = auth.uid());
-
--- alimtalk_logs.template_code → alimtalk_templates.code
-alter table public.alimtalk_logs
-  add constraint alimtalk_logs_template_fk
-  foreign key (template_code)
-  references public.alimtalk_templates(code)
-  on delete restrict;
 
 
 -- ------------------------------------------------------------
@@ -588,17 +554,10 @@ create index if not exists idx_notices_is_published         on public.notices(is
 -- [CLIENT] profile_resumes
 create index if not exists idx_profile_resumes_profile_id   on public.profile_resumes(profile_id);
 
--- [ADMIN] alimtalk_templates
-create index if not exists idx_alimtalk_templates_code         on public.alimtalk_templates(code);
-create index if not exists idx_alimtalk_templates_service_type on public.alimtalk_templates(service_type);
-create index if not exists idx_alimtalk_templates_is_active    on public.alimtalk_templates(is_active);
-
 -- [ADMIN] alimtalk_logs
 create index if not exists idx_alimtalk_created_at          on public.alimtalk_logs(created_at desc);
 create index if not exists idx_alimtalk_sent_at             on public.alimtalk_logs(sent_at);
 create index if not exists idx_alimtalk_user_id             on public.alimtalk_logs(user_id);
-create index if not exists idx_alimtalk_template_code       on public.alimtalk_logs(template_code);
-create index if not exists idx_alimtalk_service_type        on public.alimtalk_logs(service_type);
 create index if not exists idx_alimtalk_is_success          on public.alimtalk_logs(is_success);
 
 -- [ADMIN] admin_audit_logs

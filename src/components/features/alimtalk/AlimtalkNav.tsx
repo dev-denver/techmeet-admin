@@ -5,9 +5,8 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
 
 const tabs = [
-  { href: "/alimtalk",           label: "발송 이력" },
-  { href: "/alimtalk/templates", label: "템플릿 관리" },
-  { href: "/alimtalk/send",      label: "알림톡 발송" },
+  { href: "/alimtalk",      label: "발송 이력" },
+  { href: "/alimtalk/send", label: "알림톡 발송" },
 ];
 
 export function AlimtalkNav() {
