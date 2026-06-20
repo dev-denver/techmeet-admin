@@ -51,7 +51,7 @@ export default async function AlimtalkPage({ searchParams }: Props) {
 
   return (
     <>
-      <Header title="알림톡" />
+      <Header title="문자 발송" />
       <main className="flex-1 overflow-y-auto p-4 sm:p-6">
         <AlimtalkNav />
         <div className="flex items-center justify-between mb-4">
@@ -59,7 +59,7 @@ export default async function AlimtalkPage({ searchParams }: Props) {
           <Button asChild size="sm" className="ml-3 shrink-0">
             <Link href="/alimtalk/send">
               <Send className="h-4 w-4 mr-2" />
-              알림톡 발송
+              문자 발송
             </Link>
           </Button>
         </div>

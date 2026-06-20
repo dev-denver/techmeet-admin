@@ -467,9 +467,10 @@ create table if not exists public.alimtalk_logs (
   send_type     text        not null default 'immediate'                                    -- 발송 방식 (immediate/scheduled)
     check (send_type in ('immediate', 'scheduled')),
   scheduled_at  timestamptz,                                                                -- 예약 발송 일시
-  is_success    boolean,                                                                    -- 발송 성공 여부
+  is_success    boolean,                                                                    -- 발송 성공 여부 (최종 확정 전까지 null)
   sent_at       timestamptz,                                                                -- 실제 발송 일시
   error_message text,                                                                       -- 오류 메시지
+  group_status  text        check (group_status in ('NONE','RESERVED','PROCESSING','COMPLETED','FAILED','CANCELED')), -- Sendon groupStatus (find API 폴링 결과)
   seq_id        bigint      generated always as identity unique,                            -- Supabase Realtime 순서 관리 (자동)
   created_at    timestamptz not null default now()                                          -- 생성 일시
 );
