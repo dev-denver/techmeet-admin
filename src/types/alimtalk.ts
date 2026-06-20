@@ -12,6 +12,7 @@ export interface AlimtalkLog {
   is_success: boolean | null;
   sent_at: string | null;
   error_message: string | null;
+  group_status: string | null;
   created_at: string;
   profile?: {
     id: string;

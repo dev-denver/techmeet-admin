@@ -108,7 +108,7 @@ export function AlimtalkSendForm() {
     }
 
     setSuccess(true);
-    toast.success("알림톡 발송이 완료되었습니다.");
+    toast.success("문자 발송이 완료되었습니다.");
     setTimeout(() => router.push("/alimtalk"), 1500);
   }
 

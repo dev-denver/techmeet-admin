@@ -24,7 +24,7 @@ const navItems: { href: string; label: string; icon: React.ElementType; sub?: bo
   { href: "/users", label: "사용자", icon: Users },
   { href: "/users/referrers", label: "추천인 관리", icon: UserCheck, sub: true },
   { href: "/deployment", label: "투입현황", icon: UsersRound },
-  { href: "/alimtalk", label: "알림톡", icon: MessageSquare },
+  { href: "/alimtalk", label: "문자 발송", icon: MessageSquare },
   { href: "/notices", label: "공지사항", icon: Bell },
 ];
 

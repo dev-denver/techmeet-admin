@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils/cn";
 
 const tabs = [
   { href: "/alimtalk",      label: "발송 이력" },
-  { href: "/alimtalk/send", label: "알림톡 발송" },
+  { href: "/alimtalk/send", label: "문자 발송" },
 ];
 
 export function AlimtalkNav() {

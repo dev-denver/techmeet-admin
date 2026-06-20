@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/publish-notices",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/sms-status",
+      "schedule": "30 0 * * *"
     }
   ]
 }

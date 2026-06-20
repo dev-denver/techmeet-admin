@@ -33,6 +33,7 @@ const RESOURCE_LABELS: Record<string, string> = {
   applications: "지원서",
   notices: "공지사항",
   admins: "관리자",
+  alimtalk: "문자 발송",
 };
 
 interface Props {

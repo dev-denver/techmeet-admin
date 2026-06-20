@@ -5,7 +5,7 @@ import { AlimtalkNav } from "@/components/features/alimtalk/AlimtalkNav";
 export default function AlimtalkSendPage() {
   return (
     <>
-      <Header title="알림톡" />
+      <Header title="문자 발송" />
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 max-w-2xl">
         <AlimtalkNav />
         <AlimtalkSendForm />

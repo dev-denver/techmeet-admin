@@ -53,12 +53,3 @@ export const DEPLOYMENT_GRADE = {
 } as const;
 
 export type DeploymentGradeKey = keyof typeof DEPLOYMENT_GRADE;
-
-export const ALIMTALK_SERVICE_TYPE = {
-  project:    { label: "프로젝트", color: "default" },
-  notice:     { label: "공지",     color: "secondary" },
-  individual: { label: "개별",     color: "outline" },
-  all:        { label: "전체",     color: "outline" },
-} as const;
-
-export type AlimtalkServiceType = keyof typeof ALIMTALK_SERVICE_TYPE;
