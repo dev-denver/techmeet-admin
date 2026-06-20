@@ -1,14 +1,35 @@
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
+
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+// DB는 UTC(timestamptz)로 저장되어 있으므로, 서버 실행 환경의 타임존(예: Vercel=UTC)과
+// 무관하게 항상 한국 시간(KST, UTC+9, DST 없음)으로 표시하기 위해 UTC getter로 직접 계산한다.
+function toKSTParts(date: Date) {
+  const kst = new Date(date.getTime() + KST_OFFSET_MS);
+  return {
+    year: kst.getUTCFullYear(),
+    month: kst.getUTCMonth() + 1,
+    day: kst.getUTCDate(),
+    hour: kst.getUTCHours(),
+    minute: kst.getUTCMinutes(),
+  };
+}
+
+function pad2(n: number): string {
+  return String(n).padStart(2, "0");
+}
 
 export function formatDate(date: string | Date | null | undefined): string {
   if (!date) return "-";
-  return format(new Date(date), "yyyy.MM.dd", { locale: ko });
+  const { year, month, day } = toKSTParts(new Date(date));
+  return `${year}.${pad2(month)}.${pad2(day)}`;
 }
 
 export function formatDateTime(date: string | Date | null | undefined): string {
   if (!date) return "-";
-  return format(new Date(date), "yyyy.MM.dd HH:mm", { locale: ko });
+  const { year, month, day, hour, minute } = toKSTParts(new Date(date));
+  return `${year}.${pad2(month)}.${pad2(day)} ${pad2(hour)}:${pad2(minute)}`;
 }
 
 export function formatRelativeTime(
