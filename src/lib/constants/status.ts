@@ -53,3 +53,17 @@ export const DEPLOYMENT_GRADE = {
 } as const;
 
 export type DeploymentGradeKey = keyof typeof DEPLOYMENT_GRADE;
+
+export const DEPLOYMENT_PROJECT_STATUS = {
+  active: { label: "진행중", color: "default" },
+  closed: { label: "종료", color: "secondary" },
+} as const;
+
+export type DeploymentProjectStatusKey = keyof typeof DEPLOYMENT_PROJECT_STATUS;
+
+export const DEPLOYMENT_PROJECT_TYPE = {
+  SI: { label: "SI", color: "outline" },
+  SM: { label: "SM", color: "default" },
+} as const;
+
+export type DeploymentProjectTypeKey = keyof typeof DEPLOYMENT_PROJECT_TYPE;

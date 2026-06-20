@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { verifyAdmin } from "@/lib/api/verify-admin";
 import { apiSuccess, apiDbError, apiNotFound, parseBody } from "@/lib/api/response";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { smMemberUpdateSchema } from "@/lib/api/schemas";
+import { deploymentProjectNoticeUpdateSchema } from "@/lib/api/schemas";
 import { logAudit } from "@/lib/api/audit";
 
 export async function GET(
@@ -15,12 +15,12 @@ export async function GET(
   const { id } = await params;
   const adminClient = createAdminClient();
   const { data, error: dbError } = await adminClient
-    .from("deployment_sm_members")
+    .from("deployment_project_notices")
     .select("*")
     .eq("id", id)
     .single();
 
-  if (dbError || !data) return apiNotFound("SM 인원");
+  if (dbError || !data) return apiNotFound("이관공지");
   return apiSuccess(data);
 }
 
@@ -31,14 +31,14 @@ export async function PUT(
   const { error, adminUser } = await verifyAdmin();
   if (error) return error;
 
-  const { data: body, error: parseError } = await parseBody(request, smMemberUpdateSchema);
+  const { data: body, error: parseError } = await parseBody(request, deploymentProjectNoticeUpdateSchema);
   if (parseError) return parseError;
 
   const { id } = await params;
   const adminClient = createAdminClient();
 
   const { data, error: dbError } = await adminClient
-    .from("deployment_sm_members")
+    .from("deployment_project_notices")
     .update({ ...body, updated_at: new Date().toISOString() })
     .eq("id", id)
     .select()
@@ -50,7 +50,7 @@ export async function PUT(
     adminId: adminUser!.id,
     adminName: adminUser!.name,
     action: "update",
-    resource: "deployment_sm_members",
+    resource: "deployment_project_notices",
     resourceId: id,
     details: body,
   });
@@ -68,7 +68,7 @@ export async function DELETE(
   const { id } = await params;
   const adminClient = createAdminClient();
   const { error: dbError } = await adminClient
-    .from("deployment_sm_members")
+    .from("deployment_project_notices")
     .delete()
     .eq("id", id);
 
@@ -78,7 +78,7 @@ export async function DELETE(
     adminId: adminUser!.id,
     adminName: adminUser!.name,
     action: "delete",
-    resource: "deployment_sm_members",
+    resource: "deployment_project_notices",
     resourceId: id,
   });
 
