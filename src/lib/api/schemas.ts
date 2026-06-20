@@ -127,38 +127,41 @@ export const alimtalkSendSchema = z.object({
 
 export type AlimtalkSendInput = z.infer<typeof alimtalkSendSchema>;
 
-// ── Deployment ──
-export const smMemberCreateSchema = z.object({
-  site:        z.string().min(1, "사이트를 입력해주세요."),
-  name:        z.string().min(1, "이름을 입력해주세요."),
-  part:        z.string().min(1, "소속파트를 입력해주세요."),
-  detail_work: z.string().min(1, "상세업무를 입력해주세요."),
-  grade:       z.enum(["초급", "중급", "고급", "특급"]),
+// ── Deployment Projects ──
+export const deploymentProjectCreateSchema = z.object({
+  name:   z.string().min(1, "프로젝트명을 입력해주세요."),
+  type:   z.enum(["SI", "SM"]),
+  status: z.enum(["active", "closed"]),
 });
-export const smMemberUpdateSchema = smMemberCreateSchema.partial();
-export type SmMemberCreateInput = z.infer<typeof smMemberCreateSchema>;
-export type SmMemberUpdateInput = z.infer<typeof smMemberUpdateSchema>;
+export const deploymentProjectUpdateSchema = deploymentProjectCreateSchema.partial();
+export type DeploymentProjectCreateInput = z.infer<typeof deploymentProjectCreateSchema>;
+export type DeploymentProjectUpdateInput = z.infer<typeof deploymentProjectUpdateSchema>;
 
-export const smNoticeCreateSchema = z.object({
-  site:            z.string().min(1, "사이트를 입력해주세요."),
+export const deploymentProjectMemberCreateSchema = z.object({
+  project_id:  z.string().uuid(),
+  name:        z.string().min(1, "이름을 입력해주세요."),
+  part:        z.string().optional().nullable(),
+  detail_work: z.string().optional().nullable(),
+  grade:       z.enum(["초급", "중급", "고급", "특급"]).optional().nullable(),
+  memo:        z.string().optional().nullable(),
+});
+export const deploymentProjectMemberUpdateSchema = deploymentProjectMemberCreateSchema
+  .omit({ project_id: true })
+  .partial();
+export type DeploymentProjectMemberCreateInput = z.infer<typeof deploymentProjectMemberCreateSchema>;
+export type DeploymentProjectMemberUpdateInput = z.infer<typeof deploymentProjectMemberUpdateSchema>;
+
+export const deploymentProjectNoticeCreateSchema = z.object({
+  project_id:      z.string().uuid(),
   transfer_notice: z.string().min(1, "주요이관사항을 입력해주세요."),
   notice_date:     z.string().min(1, "날짜를 입력해주세요."),
   main_manager:    z.string().min(1, "주 담당자를 입력해주세요."),
 });
-export const smNoticeUpdateSchema = smNoticeCreateSchema.partial();
-export type SmNoticeCreateInput = z.infer<typeof smNoticeCreateSchema>;
-export type SmNoticeUpdateInput = z.infer<typeof smNoticeUpdateSchema>;
-
-export const siMemberCreateSchema = z.object({
-  site:         z.string().min(1, "사이트를 입력해주세요."),
-  name:         z.string().min(1, "이름을 입력해주세요."),
-  project_name: z.string().min(1, "프로젝트명을 입력해주세요."),
-  detail_work:  z.string().min(1, "상세업무를 입력해주세요."),
-  grade:        z.enum(["초급", "중급", "고급", "특급"]),
-});
-export const siMemberUpdateSchema = siMemberCreateSchema.partial();
-export type SiMemberCreateInput = z.infer<typeof siMemberCreateSchema>;
-export type SiMemberUpdateInput = z.infer<typeof siMemberUpdateSchema>;
+export const deploymentProjectNoticeUpdateSchema = deploymentProjectNoticeCreateSchema
+  .omit({ project_id: true })
+  .partial();
+export type DeploymentProjectNoticeCreateInput = z.infer<typeof deploymentProjectNoticeCreateSchema>;
+export type DeploymentProjectNoticeUpdateInput = z.infer<typeof deploymentProjectNoticeUpdateSchema>;
 
 // ── Bulk Actions ──
 export const bulkStatusSchema = z.object({

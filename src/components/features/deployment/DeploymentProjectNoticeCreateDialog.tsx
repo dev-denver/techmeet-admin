@@ -24,22 +24,26 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { smNoticeCreateSchema, type SmNoticeCreateInput } from "@/lib/api/schemas";
+import { deploymentProjectNoticeCreateSchema, type DeploymentProjectNoticeCreateInput } from "@/lib/api/schemas";
 
-export function SmNoticeCreateDialog() {
+interface DeploymentProjectNoticeCreateDialogProps {
+  projectId: string;
+}
+
+export function DeploymentProjectNoticeCreateDialog({ projectId }: DeploymentProjectNoticeCreateDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const form = useForm<SmNoticeCreateInput>({
-    resolver: zodResolver(smNoticeCreateSchema),
-    defaultValues: { site: "", transfer_notice: "", notice_date: "", main_manager: "" },
+  const form = useForm<DeploymentProjectNoticeCreateInput>({
+    resolver: zodResolver(deploymentProjectNoticeCreateSchema),
+    defaultValues: { project_id: projectId, transfer_notice: "", notice_date: "", main_manager: "" },
   });
 
-  async function onSubmit(values: SmNoticeCreateInput) {
+  async function onSubmit(values: DeploymentProjectNoticeCreateInput) {
     setSubmitting(true);
     try {
-      const res = await fetch("/api/deployment/sm-notices", {
+      const res = await fetch("/api/deployment/notices", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
@@ -47,7 +51,7 @@ export function SmNoticeCreateDialog() {
       const json = await res.json();
       if (!json.success) throw new Error(json.error?.message ?? "등록 실패");
       toast.success("이관공지가 등록되었습니다.");
-      form.reset();
+      form.reset({ project_id: projectId, transfer_notice: "", notice_date: "", main_manager: "" });
       setOpen(false);
       router.refresh();
     } catch (e) {
@@ -76,34 +80,19 @@ export function SmNoticeCreateDialog() {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="site"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>사이트 <span className="text-destructive">*</span></FormLabel>
-                    <FormControl>
-                      <Input placeholder="KB손보" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="main_manager"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>주 담당자 <span className="text-destructive">*</span></FormLabel>
-                    <FormControl>
-                      <Input placeholder="김영림" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="main_manager"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>주 담당자 <span className="text-destructive">*</span></FormLabel>
+                  <FormControl>
+                    <Input placeholder="김영림" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="notice_date"
@@ -124,11 +113,7 @@ export function SmNoticeCreateDialog() {
                 <FormItem>
                   <FormLabel>주요이관사항 <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="다이렉트 보험개발원 수정사항 반영"
-                      rows={3}
-                      {...field}
-                    />
+                    <Textarea placeholder="다이렉트 보험개발원 수정사항 반영" rows={3} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

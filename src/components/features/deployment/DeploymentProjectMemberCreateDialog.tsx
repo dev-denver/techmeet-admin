@@ -28,34 +28,47 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { siMemberCreateSchema, type SiMemberCreateInput } from "@/lib/api/schemas";
+import { deploymentProjectMemberCreateSchema, type DeploymentProjectMemberCreateInput } from "@/lib/api/schemas";
 
 const GRADES = ["초급", "중급", "고급", "특급"] as const;
+const NO_GRADE = "__none__";
 
-export function SiMemberCreateDialog() {
+interface DeploymentProjectMemberCreateDialogProps {
+  projectId: string;
+}
+
+export function DeploymentProjectMemberCreateDialog({ projectId }: DeploymentProjectMemberCreateDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const form = useForm<SiMemberCreateInput>({
-    resolver: zodResolver(siMemberCreateSchema),
-    defaultValues: { site: "", name: "", project_name: "", detail_work: "", grade: "초급" },
+  const form = useForm<DeploymentProjectMemberCreateInput>({
+    resolver: zodResolver(deploymentProjectMemberCreateSchema),
+    defaultValues: {
+      project_id: projectId,
+      name: "",
+      part: "",
+      detail_work: "",
+      grade: null,
+      memo: "",
+    },
   });
 
-  async function onSubmit(values: SiMemberCreateInput) {
+  async function onSubmit(values: DeploymentProjectMemberCreateInput) {
     setSubmitting(true);
     try {
-      const res = await fetch("/api/deployment/si-members", {
+      const res = await fetch("/api/deployment/members", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
       const json = await res.json();
       if (!json.success) throw new Error(json.error?.message ?? "등록 실패");
-      toast.success("SI 인원이 등록되었습니다.");
-      form.reset();
+      toast.success("투입 인원이 등록되었습니다.");
+      form.reset({ project_id: projectId, name: "", part: "", detail_work: "", grade: null, memo: "" });
       setOpen(false);
       router.refresh();
     } catch (e) {
@@ -75,29 +88,16 @@ export function SiMemberCreateDialog() {
       <DialogTrigger asChild>
         <Button size="sm" className="shrink-0">
           <UserPlus className="h-4 w-4 mr-1.5" />
-          SI 인원 등록
+          인원 추가
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>SI 인원 등록</DialogTitle>
+          <DialogTitle>투입 인원 추가</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="site"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>사이트 <span className="text-destructive">*</span></FormLabel>
-                    <FormControl>
-                      <Input placeholder="KB손보" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="name"
@@ -113,12 +113,12 @@ export function SiMemberCreateDialog() {
               />
               <FormField
                 control={form.control}
-                name="project_name"
+                name="part"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>프로젝트명 <span className="text-destructive">*</span></FormLabel>
+                    <FormLabel>소속파트</FormLabel>
                     <FormControl>
-                      <Input placeholder="다이렉트 차세대" {...field} />
+                      <Input placeholder="다이렉트" {...field} value={field.value ?? ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -129,10 +129,36 @@ export function SiMemberCreateDialog() {
                 name="detail_work"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>상세업무 <span className="text-destructive">*</span></FormLabel>
+                    <FormLabel>상세업무</FormLabel>
                     <FormControl>
-                      <Input placeholder="자동차" {...field} />
+                      <Input placeholder="자동차" {...field} value={field.value ?? ""} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="grade"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>등급</FormLabel>
+                    <Select
+                      onValueChange={(v) => field.onChange(v === NO_GRADE ? null : v)}
+                      value={field.value ?? NO_GRADE}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="선택 안 함" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={NO_GRADE}>선택 안 함</SelectItem>
+                        {GRADES.map((g) => (
+                          <SelectItem key={g} value={g}>{g}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -140,22 +166,13 @@ export function SiMemberCreateDialog() {
             </div>
             <FormField
               control={form.control}
-              name="grade"
+              name="memo"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>등급 <span className="text-destructive">*</span></FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="등급 선택" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {GRADES.map((g) => (
-                        <SelectItem key={g} value={g}>{g}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>메모</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="관리자 메모" rows={3} {...field} value={field.value ?? ""} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
