@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/utils/format";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -61,10 +61,10 @@ export function SmNoticesSection({ notices }: SmNoticesSectionProps) {
                   <TableCell className="hidden lg:table-cell"><Badge variant="outline">SM</Badge></TableCell>
                   <TableCell className="font-medium">{n.site}</TableCell>
                   <TableCell className="max-w-xs truncate">{n.transfer_notice}</TableCell>
-                  <TableCell>{format(new Date(n.notice_date), "yyyy.MM.dd")}</TableCell>
+                  <TableCell>{formatDate(n.notice_date)}</TableCell>
                   <TableCell>{n.main_manager}</TableCell>
                   <TableCell className="hidden text-muted-foreground text-xs lg:table-cell">
-                    {format(new Date(n.created_at), "yyyy.MM.dd")}
+                    {formatDate(n.created_at)}
                   </TableCell>
                 </TableRow>
               ))
@@ -89,7 +89,7 @@ export function SmNoticesSection({ notices }: SmNoticesSectionProps) {
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="font-medium">{n.site}</span>
-                <span className="text-xs text-muted-foreground">{format(new Date(n.notice_date), "yyyy.MM.dd")}</span>
+                <span className="text-xs text-muted-foreground">{formatDate(n.notice_date)}</span>
               </div>
               <div className="mt-1 line-clamp-2 text-sm text-muted-foreground">{n.transfer_notice}</div>
               <div className="mt-1 text-xs text-muted-foreground">

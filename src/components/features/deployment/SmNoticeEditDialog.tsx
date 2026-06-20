@@ -24,7 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/utils/format";
 import { smNoticeCreateSchema, type SmNoticeCreateInput } from "@/lib/api/schemas";
 import type { SmNotice } from "@/types/deployment";
 
@@ -195,7 +195,7 @@ export function SmNoticeEditDialog({ notice, onOpenChange }: SmNoticeEditDialogP
                   <div className="col-span-2">
                     <p className="text-muted-foreground text-xs mb-0.5">날짜</p>
                     <p className="font-medium">
-                      {format(new Date(notice.notice_date), "yyyy.MM.dd")}
+                      {formatDate(notice.notice_date)}
                     </p>
                   </div>
                   <div className="col-span-2">

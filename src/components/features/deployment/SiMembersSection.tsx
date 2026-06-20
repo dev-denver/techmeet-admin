@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/utils/format";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -68,7 +68,7 @@ export function SiMembersSection({ members }: SiMembersSectionProps) {
                     <Badge variant="outline">{m.grade}</Badge>
                   </TableCell>
                   <TableCell className="hidden text-muted-foreground text-xs lg:table-cell">
-                    {format(new Date(m.created_at), "yyyy.MM.dd")}
+                    {formatDate(m.created_at)}
                   </TableCell>
                 </TableRow>
               ))
@@ -100,7 +100,7 @@ export function SiMembersSection({ members }: SiMembersSectionProps) {
                 <div className="mt-1 text-xs text-muted-foreground">{m.detail_work}</div>
               )}
               <div className="mt-1 text-xs text-muted-foreground">
-                #{m.seq_id} · {format(new Date(m.created_at), "yyyy.MM.dd")}
+                #{m.seq_id} · {formatDate(m.created_at)}
               </div>
             </button>
           ))
