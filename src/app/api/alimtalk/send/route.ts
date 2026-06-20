@@ -54,14 +54,11 @@ export async function POST(request: NextRequest) {
       if (!profile?.phone) {
         return { logId: log.id, accepted: false, groupId: undefined, error: "전화번호 없음" };
       }
-      try {
-        const r = await sendSms(profile.phone, content, send_type === "scheduled" ? (scheduled_at ?? null) : null, title);
-        return { logId: log.id, accepted: r.success, groupId: r.groupId ?? r.reservationId, error: r.error };
-      } catch (e) {
-        const message = e instanceof Error ? e.message : "발송 중 오류 발생";
-        logger.error("Sendon SMS 발송 중 예외 발생", { logId: log.id, message });
-        return { logId: log.id, accepted: false, groupId: undefined, error: message };
+      const r = await sendSms(profile.phone, content, send_type === "scheduled" ? (scheduled_at ?? null) : null, title);
+      if (!r.success) {
+        logger.error("Sendon SMS 발송 실패", { logId: log.id, error: r.error });
       }
+      return { logId: log.id, accepted: r.success, groupId: r.groupId ?? r.reservationId, error: r.error };
     })
   );
 

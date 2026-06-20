@@ -30,21 +30,33 @@ export async function sendSms(
   title?: string
 ): Promise<SmsSendResult> {
   const client = createClient();
-  const res = await client.sms.send({
-    type: SmsMessageType.LMS,
-    from: env.sendon.from,
-    to: [to],
-    message,
-    ...(title ? { title } : {}),
-    ...(scheduledAt ? { reservation: { datetime: scheduledAt } } : {}),
-  });
-  const success = res.code === 200;
-  return {
-    success,
-    groupId: res.data?.groupId,
-    reservationId: res.data?.reservationId,
-    error: success ? undefined : res.message,
-  };
+  try {
+    const res = await client.sms.send({
+      type: SmsMessageType.LMS,
+      from: env.sendon.from,
+      to: [to],
+      message,
+      ...(title ? { title } : {}),
+      ...(scheduledAt ? { reservation: { datetime: scheduledAt } } : {}),
+    });
+    const success = res.code === 200;
+    return {
+      success,
+      groupId: res.data?.groupId,
+      reservationId: res.data?.reservationId,
+      error: success ? undefined : res.message,
+    };
+  } catch (e) {
+    // axios가 비-2xx 응답에 예외를 던지므로, 실제 Sendon API가 반환한 본문(response.data)을
+    // 우선적으로 노출해야 거절 사유(발신번호 미등록/인증 실패 등)를 알 수 있다.
+    const responseData = (e as { response?: { data?: unknown } })?.response?.data;
+    const error = responseData
+      ? JSON.stringify(responseData)
+      : e instanceof Error
+        ? e.message
+        : "발송 중 오류 발생";
+    return { success: false, error };
+  }
 }
 
 const TERMINAL_GROUP_STATUSES: SmsGroupStatus[] = ["COMPLETED", "FAILED", "CANCELED"];
