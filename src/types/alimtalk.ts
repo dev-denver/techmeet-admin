@@ -1,36 +1,11 @@
 import type { SendType } from "@/lib/constants/status";
 
-export interface AlimtalkTemplate {
-  id: string;
-  seq_id: number;
-  code: string;
-  name: string;
-  body: string;
-  variables: string[];
-  service_type: "project" | "notice" | "individual" | "all";
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface AlimtalkTemplateListItem {
-  id: string;
-  seq_id: number;
-  code: string;
-  name: string;
-  service_type: "project" | "notice" | "individual" | "all";
-  is_active: boolean;
-  variables: string[];
-  created_at: string;
-}
-
 export interface AlimtalkLog {
   id: string;
   seq_id: number;
   user_id: string | null;
-  template_code: string;
-  template_name: string;
-  service_type: "project" | "notice" | "individual";
+  title: string;
+  content: string;
   message_id: string | null;
   send_type: SendType;
   scheduled_at: string | null;
@@ -45,13 +20,17 @@ export interface AlimtalkLog {
   };
 }
 
+export interface AlimtalkRecipient {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+}
+
 export interface AlimtalkSendValues {
-  template_code: string;
-  template_name: string;
-  service_type: "project" | "notice" | "individual";
+  title: string;
+  content: string;
   send_type: SendType;
   scheduled_at?: string | null;
-  target: "all" | "individual";
-  user_id?: string;
-  message_params?: Record<string, string>;
+  user_ids: string[];
 }

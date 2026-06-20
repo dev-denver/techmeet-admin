@@ -34,7 +34,7 @@ async function getAlimtalkLogs(params: { page?: string }) {
   const { data, count } = await adminClient
     .from("alimtalk_logs")
     .select(`
-      id, seq_id, user_id, template_code, template_name, service_type,
+      id, seq_id, user_id, title, content,
       send_type, is_success, sent_at, scheduled_at, error_message, created_at,
       profile:profiles(id, name, email)
     `, { count: "exact" })
@@ -70,9 +70,8 @@ export default async function AlimtalkPage({ searchParams }: Props) {
             <TableHeader>
               <TableRow>
                 <TableHead className="hidden w-16 lg:table-cell">ID</TableHead>
-                <TableHead>템플릿</TableHead>
+                <TableHead>제목</TableHead>
                 <TableHead>수신자</TableHead>
-                <TableHead className="hidden lg:table-cell">서비스 유형</TableHead>
                 <TableHead className="hidden lg:table-cell">발송 유형</TableHead>
                 <TableHead>결과</TableHead>
                 <TableHead>발송일시</TableHead>
@@ -81,7 +80,7 @@ export default async function AlimtalkPage({ searchParams }: Props) {
             <TableBody>
               {logs.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7}>
+                  <TableCell colSpan={6}>
                     <EmptyState title="발송 내역이 없습니다." />
                   </TableCell>
                 </TableRow>
@@ -94,8 +93,8 @@ export default async function AlimtalkPage({ searchParams }: Props) {
                         <span className="font-mono text-xs text-muted-foreground">#{log.seq_id}</span>
                       </TableCell>
                       <TableCell>
-                        <p className="font-medium">{log.template_name}</p>
-                        <p className="text-xs text-muted-foreground">{log.template_code}</p>
+                        <p className="font-medium">{log.title}</p>
+                        <p className="max-w-xs truncate text-xs text-muted-foreground">{log.content}</p>
                       </TableCell>
                       <TableCell>
                         {profile ? (
@@ -104,11 +103,8 @@ export default async function AlimtalkPage({ searchParams }: Props) {
                             <p className="text-xs text-muted-foreground">{profile.email}</p>
                           </div>
                         ) : (
-                          <span className="text-muted-foreground">전체</span>
+                          <span className="text-muted-foreground">탈퇴 회원</span>
                         )}
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell">
-                        <Badge variant="outline">{log.service_type}</Badge>
                       </TableCell>
                       <TableCell className="hidden lg:table-cell">
                         <Badge variant={log.send_type === "immediate" ? "default" : "outline"}>
@@ -144,8 +140,8 @@ export default async function AlimtalkPage({ searchParams }: Props) {
                 <div key={log.id} className="rounded-md border p-3">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="font-medium">{log.template_name}</p>
-                      <p className="text-xs text-muted-foreground">{log.template_code}</p>
+                      <p className="font-medium">{log.title}</p>
+                      <p className="line-clamp-1 text-xs text-muted-foreground">{log.content}</p>
                     </div>
                     {log.is_success === null ? (
                       <Badge variant="secondary">대기</Badge>
@@ -156,11 +152,10 @@ export default async function AlimtalkPage({ searchParams }: Props) {
                     )}
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {profile ? `${profile.name} (${profile.email})` : "전체"}
+                    {profile ? `${profile.name} (${profile.email})` : "탈퇴 회원"}
                   </p>
                   <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     <span className="font-mono">#{log.seq_id}</span>
-                    <Badge variant="outline" className="text-[10px]">{log.service_type}</Badge>
                     <span>{log.send_type === "immediate" ? "즉시" : "예약"}</span>
                     <span>{formatDateTime(log.sent_at ?? log.created_at)}</span>
                   </div>
