@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { alimtalkSendSchema } from "@/lib/api/schemas";
 import { logAudit } from "@/lib/api/audit";
 import { sendSms, findSms, isTerminalGroupStatus, computeIsSuccess } from "@/lib/services/sendon";
+import { logger } from "@/lib/observability/logger";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -53,8 +54,14 @@ export async function POST(request: NextRequest) {
       if (!profile?.phone) {
         return { logId: log.id, accepted: false, groupId: undefined, error: "전화번호 없음" };
       }
-      const r = await sendSms(profile.phone, content, send_type === "scheduled" ? (scheduled_at ?? null) : null, title);
-      return { logId: log.id, accepted: r.success, groupId: r.groupId ?? r.reservationId, error: r.error };
+      try {
+        const r = await sendSms(profile.phone, content, send_type === "scheduled" ? (scheduled_at ?? null) : null, title);
+        return { logId: log.id, accepted: r.success, groupId: r.groupId ?? r.reservationId, error: r.error };
+      } catch (e) {
+        const message = e instanceof Error ? e.message : "발송 중 오류 발생";
+        logger.error("Sendon SMS 발송 중 예외 발생", { logId: log.id, message });
+        return { logId: log.id, accepted: false, groupId: undefined, error: message };
+      }
     })
   );
 
