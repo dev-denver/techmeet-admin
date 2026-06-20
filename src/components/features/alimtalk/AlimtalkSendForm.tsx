@@ -28,14 +28,33 @@ import {
 import { toast } from "sonner";
 import { X } from "lucide-react";
 import { RecipientPickerDialog } from "./RecipientPickerDialog";
+import { formatDateTime } from "@/lib/utils/format";
+import { cn } from "@/lib/utils/cn";
 import type { AlimtalkRecipient } from "@/types";
 
+const TITLE_MAX = 100;
+const CONTENT_MAX = 2000;
+
 const sendSchema = z.object({
-  title:        z.string().min(1, "제목을 입력해주세요.").max(100, "제목은 최대 100자입니다."),
-  content:      z.string().min(1, "내용을 입력해주세요.").max(2000, "내용은 최대 2000자입니다."),
+  title:        z.string().min(1, "제목을 입력해주세요.").max(TITLE_MAX, `제목은 최대 ${TITLE_MAX}자입니다.`),
+  content:      z.string().min(1, "내용을 입력해주세요.").max(CONTENT_MAX, `내용은 최대 ${CONTENT_MAX}자입니다.`),
   send_type:    z.enum(["immediate", "scheduled"]),
   scheduled_at: z.string().nullable(),
 });
+
+function CharCounter({ length, max }: { length: number; max: number }) {
+  const ratio = length / max;
+  return (
+    <span
+      className={cn(
+        "text-xs tabular-nums",
+        ratio >= 1 ? "text-destructive" : ratio >= 0.9 ? "text-amber-600" : "text-muted-foreground"
+      )}
+    >
+      {length} / {max}
+    </span>
+  );
+}
 
 type SendFormValues = z.infer<typeof sendSchema>;
 
@@ -59,6 +78,7 @@ export function AlimtalkSendForm() {
   const sendType = form.watch("send_type");
   const title = form.watch("title");
   const content = form.watch("content");
+  const scheduledAt = form.watch("scheduled_at");
 
   function removeRecipient(id: string) {
     setRecipients((prev) => prev.filter((r) => r.id !== id));
@@ -101,7 +121,10 @@ export function AlimtalkSendForm() {
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>제목</FormLabel>
+                <div className="flex items-baseline justify-between">
+                  <FormLabel>제목</FormLabel>
+                  <CharCounter length={field.value.length} max={TITLE_MAX} />
+                </div>
                 <FormControl>
                   <Input placeholder="발송 제목을 입력해주세요" {...field} />
                 </FormControl>
@@ -115,7 +138,10 @@ export function AlimtalkSendForm() {
             name="content"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>내용</FormLabel>
+                <div className="flex items-baseline justify-between">
+                  <FormLabel>내용</FormLabel>
+                  <CharCounter length={field.value.length} max={CONTENT_MAX} />
+                </div>
                 <FormControl>
                   <Textarea placeholder="발송할 내용을 입력해주세요" rows={8} {...field} />
                 </FormControl>
@@ -214,14 +240,44 @@ export function AlimtalkSendForm() {
           <CardHeader>
             <CardTitle className="text-sm">발송 미리보기</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="rounded-lg bg-muted p-4">
-              <p className="font-semibold">{title || "제목을 입력해주세요"}</p>
-              <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
-                {content || "내용을 입력해주세요"}
-              </p>
+          <CardContent className="space-y-4">
+            <div className="rounded-2xl border bg-card p-3 shadow-sm">
+              <div className="flex items-center justify-between border-b pb-2 text-xs text-muted-foreground">
+                <span>문자메시지</span>
+                <span>{sendType === "immediate" ? "지금" : formatDateTime(scheduledAt)}</span>
+              </div>
+              <div className="mt-3 rounded-xl bg-muted p-3">
+                <p className="break-words font-semibold leading-snug">
+                  {title || <span className="text-muted-foreground">제목을 입력해주세요</span>}
+                </p>
+                <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-muted-foreground">
+                  {content || "내용을 입력해주세요"}
+                </p>
+              </div>
             </div>
-            <p className="mt-3 text-sm text-muted-foreground">발송 대상 {recipients.length}명</p>
+
+            <div className="space-y-1.5 text-sm">
+              <div className="flex items-start justify-between gap-3">
+                <span className="text-muted-foreground">발송 대상</span>
+                <span className="text-right font-medium">
+                  {recipients.length === 0
+                    ? "선택된 대상자가 없습니다"
+                    : recipients.length <= 3
+                      ? recipients.map((r) => r.name).join(", ")
+                      : `${recipients.slice(0, 3).map((r) => r.name).join(", ")} 외 ${recipients.length - 3}명`}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">발송 시점</span>
+                <span className="font-medium">
+                  {sendType === "immediate"
+                    ? "즉시 발송"
+                    : scheduledAt
+                      ? formatDateTime(scheduledAt)
+                      : "발송 일시를 선택해주세요"}
+                </span>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
