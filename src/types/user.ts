@@ -16,6 +16,16 @@ export interface Profile {
   birth_date: string | null;
   gender: string | null;
   address: string | null;
+  contract_type: string | null;
+  business_name: string | null;
+  business_number: string | null;
+  business_address: string | null;
+  business_registration_file_path: string | null;
+  business_registration_file_name: string | null;
+  bank_name: string | null;
+  bank_account_number: string | null;
+  bank_account_image_path: string | null;
+  bank_account_image_name: string | null;
   account_status: AccountStatus;
   notification_new_project: boolean;
   notification_application_update: boolean;
@@ -68,4 +78,10 @@ export interface ProfileFormValues {
   notification_new_project: boolean;
   notification_application_update: boolean;
   notification_marketing: boolean;
+  contract_type: string | null;
+  business_name: string | null;
+  business_number: string | null;
+  business_address: string | null;
+  bank_name: string | null;
+  bank_account_number: string | null;
 }
