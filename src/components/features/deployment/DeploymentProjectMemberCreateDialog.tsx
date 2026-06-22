@@ -8,6 +8,7 @@ import { UserPlus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -94,6 +95,9 @@ export function DeploymentProjectMemberCreateDialog({ projectId }: DeploymentPro
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>투입 인원 추가</DialogTitle>
+          <DialogDescription className="sr-only">
+            새 투입 인원 정보를 입력합니다.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

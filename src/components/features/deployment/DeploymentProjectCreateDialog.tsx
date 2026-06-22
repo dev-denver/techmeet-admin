@@ -8,6 +8,7 @@ import { Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -80,6 +81,9 @@ export function DeploymentProjectCreateDialog() {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>프로젝트 추가</DialogTitle>
+          <DialogDescription className="sr-only">
+            새 투입 프로젝트 정보를 입력합니다.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
