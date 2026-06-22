@@ -44,6 +44,7 @@ const userSchema = z.object({
   business_address: z.string().nullable(),
   bank_name: z.string().nullable(),
   bank_account_number: z.string().nullable(),
+  referrer_note: z.string().nullable(),
 });
 
 type UserFormSchema = z.infer<typeof userSchema>;
@@ -74,6 +75,7 @@ export function UserForm({ user }: UserFormProps) {
       business_address: user.business_address ?? null,
       bank_name: user.bank_name ?? null,
       bank_account_number: user.bank_account_number ?? null,
+      referrer_note: user.referrer_note ?? null,
     },
   });
 
@@ -278,6 +280,25 @@ export function UserForm({ user }: UserFormProps) {
                 <FormLabel>기술 스택 (쉼표로 구분)</FormLabel>
                 <FormControl>
                   <Input placeholder="React, TypeScript" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="referrer_note"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>추천인</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="추천인 이름 등"
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.value || null)}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

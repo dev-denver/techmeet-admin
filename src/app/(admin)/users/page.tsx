@@ -35,7 +35,7 @@ async function getUsers(params: { q?: string; status?: string; page?: string; pa
 
   let query = adminClient
     .from("profiles")
-    .select("id, seq_id, name, email, phone, tech_stack, account_status, created_at, user_admin_memos(memo)", { count: "exact" });
+    .select("id, seq_id, name, email, phone, tech_stack, account_status, created_at, referrer_note, user_admin_memos(memo)", { count: "exact" });
 
   if (params.q) {
     query = query.or(`name.ilike.%${params.q}%,email.ilike.%${params.q}%,phone.ilike.%${params.q}%`);
@@ -121,13 +121,14 @@ export default async function UsersPage({ searchParams }: Props) {
                 <TableHead className="hidden w-44 lg:table-cell">투입 프로젝트</TableHead>
                 <TableHead className="w-24">상태</TableHead>
                 <TableHead className="w-28">가입일</TableHead>
+                <TableHead className="hidden w-32 lg:table-cell">추천인</TableHead>
                 <TableHead className="w-12 text-center">메모</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8}>
+                  <TableCell colSpan={9}>
                     <EmptyState title="등록된 개발자가 없습니다." />
                   </TableCell>
                 </TableRow>
@@ -172,6 +173,9 @@ export default async function UsersPage({ searchParams }: Props) {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">{formatDate(user.created_at)}</TableCell>
+                      <TableCell className="hidden max-w-0 truncate text-muted-foreground lg:table-cell">
+                        <span className="block truncate">{user.referrer_note ?? "-"}</span>
+                      </TableCell>
                       <TableCell className="text-center">
                         <UserMemoDialog
                           userId={user.id}
@@ -213,6 +217,7 @@ export default async function UsersPage({ searchParams }: Props) {
                     <span>{user.phone ?? "-"}</span>
                     {user.project_count && <span>{user.project_count}</span>}
                     <span>{formatDate(user.created_at)}</span>
+                    {user.referrer_note && <span>추천인: {user.referrer_note}</span>}
                   </div>
                   {user.tech_stack && user.tech_stack.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">
