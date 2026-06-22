@@ -8,6 +8,7 @@ import { Pencil } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -111,6 +112,9 @@ export function DeploymentProjectNoticeEditDialog({ notice, onOpenChange }: Depl
               <Pencil className="h-4 w-4" />
               이관공지 {isEditing ? "수정" : "상세"}
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              이관공지의 상세 정보를 확인하거나 수정합니다.
+            </DialogDescription>
           </DialogHeader>
 
           {isEditing ? (

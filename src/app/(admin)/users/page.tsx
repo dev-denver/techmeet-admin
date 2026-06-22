@@ -67,13 +67,16 @@ async function getUsers(params: { q?: string; status?: string; page?: string; pa
     }
   });
 
-  const users = rawUsers.map((u: any) => ({  // eslint-disable-line @typescript-eslint/no-explicit-any
-    ...u,
-    admin_memo: Array.isArray(u.user_admin_memos) && u.user_admin_memos.length > 0
-      ? (u.user_admin_memos[0] as { memo: string }).memo
-      : null,
-    project_count: latestProjectMap.get(u.id) ?? null,
-  })) as ProfileListItem[];
+  const users = rawUsers.map((u: any) => {  // eslint-disable-line @typescript-eslint/no-explicit-any
+    const memoRow = Array.isArray(u.user_admin_memos)
+      ? u.user_admin_memos[0]
+      : u.user_admin_memos;
+    return {
+      ...u,
+      admin_memo: (memoRow as { memo: string } | null)?.memo ?? null,
+      project_count: latestProjectMap.get(u.id) ?? null,
+    };
+  }) as ProfileListItem[];
   return { users, total: count ?? 0, pageSize };
 }
 

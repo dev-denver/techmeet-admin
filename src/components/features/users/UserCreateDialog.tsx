@@ -9,6 +9,7 @@ import { UserPlus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -119,9 +120,9 @@ export function UserCreateDialog() {
             사용자 등록
           </DialogTitle>
         </DialogHeader>
-        <p className="text-xs text-muted-foreground -mt-1">
+        <DialogDescription className="-mt-1 text-xs">
           이메일로 계정을 사전 등록합니다. 사용자가 카카오 로그인 시 동일 이메일로 자동 연결됩니다.
-        </p>
+        </DialogDescription>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField

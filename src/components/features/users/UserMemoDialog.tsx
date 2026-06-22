@@ -6,6 +6,7 @@ import { NotebookPen, Pencil, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -148,9 +149,9 @@ export function UserMemoDialog({ userId, userName, initialMemo }: UserMemoDialog
             </DialogTitle>
           </DialogHeader>
 
-          <p className="text-xs text-muted-foreground -mt-1">
+          <DialogDescription className="-mt-1 text-xs">
             이 메모는 사용자에게 표시되지 않습니다.
-          </p>
+          </DialogDescription>
 
           {loading ? (
             <div className="h-24 animate-pulse rounded-md bg-muted/50" />

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -144,6 +145,9 @@ export function RecipientPickerDialog({
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>발송 대상자 선택</DialogTitle>
+          <DialogDescription className="sr-only">
+            알림톡을 발송할 회원을 검색하고 선택합니다.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
