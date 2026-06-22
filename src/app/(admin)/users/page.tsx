@@ -20,7 +20,6 @@ import { UserMemoDialog } from "@/components/features/users/UserMemoDialog";
 import { UserCreateDialog } from "@/components/features/users/UserCreateDialog";
 import { ACCOUNT_STATUS } from "@/lib/constants/status";
 import { formatDate } from "@/lib/utils/format";
-import { NotebookPen } from "lucide-react";
 import type { ProfileListItem } from "@/types";
 
 const PAGE_SIZE = 20;
@@ -122,7 +121,7 @@ export default async function UsersPage({ searchParams }: Props) {
                 <TableHead className="w-24">상태</TableHead>
                 <TableHead className="w-28">가입일</TableHead>
                 <TableHead className="hidden w-32 lg:table-cell">추천인</TableHead>
-                <TableHead className="w-12 text-center">메모</TableHead>
+                <TableHead className="w-44">메모</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -176,7 +175,7 @@ export default async function UsersPage({ searchParams }: Props) {
                       <TableCell className="hidden max-w-0 truncate text-muted-foreground lg:table-cell">
                         <span className="block truncate">{user.referrer_note ?? "-"}</span>
                       </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell>
                         <UserMemoDialog
                           userId={user.id}
                           userName={user.name}
@@ -234,9 +233,12 @@ export default async function UsersPage({ searchParams }: Props) {
                     </div>
                   )}
                   {user.admin_memo && user.admin_memo.trim() && (
-                    <div className="mt-1 flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
-                      <NotebookPen className="h-3 w-3" />
-                      <span>메모 있음</span>
+                    <div className="mt-1">
+                      <UserMemoDialog
+                        userId={user.id}
+                        userName={user.name}
+                        initialMemo={user.admin_memo}
+                      />
                     </div>
                   )}
                 </Link>

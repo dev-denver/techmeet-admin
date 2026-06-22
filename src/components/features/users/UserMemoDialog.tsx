@@ -113,18 +113,30 @@ export function UserMemoDialog({ userId, userName, initialMemo }: UserMemoDialog
   return (
     <>
       <button
-        onClick={handleOpen}
-        className="rounded p-1 transition-colors hover:bg-muted"
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleOpen();
+        }}
+        className="flex w-full max-w-[180px] items-center gap-1.5 rounded px-1.5 py-1 text-left transition-colors hover:bg-muted"
         title={hasMemo ? "메모 보기/편집" : "메모 추가"}
         aria-label={`${userName} 메모`}
       >
         <NotebookPen
-          className={`h-4 w-4 transition-colors ${
+          className={`h-4 w-4 shrink-0 transition-colors ${
             hasMemo
               ? "fill-amber-100 text-amber-500 dark:fill-amber-900/30"
               : "text-muted-foreground"
           }`}
         />
+        {hasMemo ? (
+          <span className="truncate text-xs text-amber-700 dark:text-amber-400">
+            {initialMemo}
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground">추가</span>
+        )}
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
