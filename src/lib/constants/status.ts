@@ -24,6 +24,13 @@ export const ACCOUNT_STATUS = {
 
 export type AccountStatus = keyof typeof ACCOUNT_STATUS;
 
+export const CONTRACT_TYPE = {
+  individual: { label: "개인 (3.3%)", color: "outline" },
+  business: { label: "사업자", color: "default" },
+} as const;
+
+export type ContractTypeKey = keyof typeof CONTRACT_TYPE;
+
 export const NOTICE_TYPE = {
   immediate: { label: "즉시", color: "default" },
   scheduled: { label: "예약", color: "outline" },
