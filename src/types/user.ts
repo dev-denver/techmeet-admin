@@ -31,7 +31,7 @@ export interface Profile {
   notification_application_update: boolean;
   notification_marketing: boolean;
   withdrawn_at: string | null;
-  referrer_id: string | null;
+  referrer_note: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -45,6 +45,7 @@ export interface ProfileListItem {
   tech_stack: string[];
   account_status: AccountStatus;
   created_at: string;
+  referrer_note: string | null;
   application_count?: number;
   project_count?: string | null;
   admin_memo?: string | null;
@@ -84,4 +85,5 @@ export interface ProfileFormValues {
   business_address: string | null;
   bank_name: string | null;
   bank_account_number: string | null;
+  referrer_note: string | null;
 }

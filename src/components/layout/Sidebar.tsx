@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   FolderOpen,
   Users,
-  UserCheck,
   FileText,
   Bell,
   MessageSquare,
@@ -17,12 +16,11 @@ import {
 import { cn } from "@/lib/utils/cn";
 import { Button } from "@/components/ui/button";
 
-const navItems: { href: string; label: string; icon: React.ElementType; sub?: boolean }[] = [
+const navItems: { href: string; label: string; icon: React.ElementType }[] = [
   { href: "/dashboard", label: "대시보드", icon: LayoutDashboard },
   { href: "/projects", label: "프로젝트", icon: FolderOpen },
   { href: "/applications", label: "지원서", icon: FileText },
   { href: "/users", label: "사용자", icon: Users },
-  { href: "/users/referrers", label: "추천인 관리", icon: UserCheck, sub: true },
   { href: "/deployment", label: "투입현황", icon: UsersRound },
   { href: "/alimtalk", label: "문자 발송", icon: MessageSquare },
   { href: "/notices", label: "공지사항", icon: Bell },
@@ -68,12 +66,7 @@ export function Sidebar({ onClose, adminRole, collapsed = false }: SidebarProps)
       <nav className="flex-1 space-y-1 px-3 py-4">
         {navItems.map((item) => {
           const Icon = item.icon;
-          // 사용자 하위 항목은 /users/referrers 만 활성 처리, 그 외 /users/* 는 사용자 항목이 활성
-          const isActive = item.sub
-            ? pathname === item.href || pathname.startsWith(item.href + "/")
-            : item.href === "/users"
-            ? pathname === "/users" || (pathname.startsWith("/users/") && !pathname.startsWith("/users/referrers"))
-            : pathname === item.href || pathname.startsWith(item.href + "/");
+          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
               key={item.href}
@@ -82,7 +75,7 @@ export function Sidebar({ onClose, adminRole, collapsed = false }: SidebarProps)
               title={collapsed ? item.label : undefined}
               className={cn(
                 "flex items-center gap-3 rounded-md py-2 text-sm font-medium transition-colors",
-                collapsed ? "justify-center px-2" : item.sub ? "pl-8 pr-3" : "px-3",
+                collapsed ? "justify-center px-2" : "px-3",
                 isActive
                   ? "bg-zinc-800 text-white"
                   : "text-zinc-400 hover:bg-zinc-800 hover:text-white"

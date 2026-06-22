@@ -16,6 +16,7 @@ export const userUpdateSchema = z.object({
   business_address: z.string().nullable().optional(),
   bank_name: z.string().nullable().optional(),
   bank_account_number: z.string().nullable().optional(),
+  referrer_note: z.string().nullable().optional(),
 });
 
 export type UserUpdateInput = z.infer<typeof userUpdateSchema>;

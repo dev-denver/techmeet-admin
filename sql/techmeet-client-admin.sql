@@ -69,7 +69,7 @@ create table if not exists public.profiles (
   account_status                   text        not null default 'active'                                  -- 계정 상태 (active/withdrawn)
     check (account_status in ('active', 'withdrawn')),
   withdrawn_at                     timestamptz,                                                           -- 탈퇴 일시
-  referrer_id                      uuid        references public.profiles(id) on delete set null,         -- 추천인 프로필 ID
+  referrer_note                    text,                                                                  -- 추천인 (자유 텍스트)
   birth_date                       date,                                                                  -- 생년월일
   gender                           text                                                                   -- 성별 (male/female)
     check (gender in ('male', 'female')),
@@ -529,7 +529,6 @@ create index if not exists idx_profiles_email               on public.profiles(e
 create index if not exists idx_profiles_account_status      on public.profiles(account_status);
 create index if not exists idx_profiles_availability_status on public.profiles(availability_status);
 create index if not exists idx_profiles_kakao_id            on public.profiles(kakao_id);
-create index if not exists idx_profiles_referrer_id         on public.profiles(referrer_id);
 
 -- [CLIENT] careers
 create index if not exists idx_careers_profile_id           on public.careers(profile_id);
