@@ -1,5 +1,32 @@
+import axios from "axios";
 import { Sendon, SmsMessageType } from "@alipeople/sendon-sdk-typescript";
 import { env } from "@/lib/config/env";
+
+// Sendon API는 발신 IP 화이트리스트를 요구해 고정 IP 프록시(AWS Squid)를 거쳐야 한다.
+// HTTPS_PROXY 같은 표준 환경변수를 쓰면 npm install 등 빌드 단계의 네트워크 요청까지
+// 같은 프록시를 타면서 빌드가 멈추므로, SENDON_PROXY_URL이라는 전용 변수로 분리하고
+// 이 모듈이 로드되는 시점(런타임에서 SMS 발송 시)에만 axios 기본 인스턴스에 적용한다.
+let proxyConfigured = false;
+function configureSendonProxy() {
+  if (proxyConfigured) return;
+  proxyConfigured = true;
+  const proxyUrl = env.sendon.proxyUrl;
+  if (!proxyUrl) return;
+  const url = new URL(proxyUrl);
+  axios.defaults.proxy = {
+    protocol: url.protocol.replace(":", ""),
+    host: url.hostname,
+    port: Number(url.port) || 80,
+    ...(url.username
+      ? {
+          auth: {
+            username: decodeURIComponent(url.username),
+            password: decodeURIComponent(url.password),
+          },
+        }
+      : {}),
+  };
+}
 
 export type SmsSendResult = {
   success: boolean;
@@ -20,6 +47,7 @@ export type SmsFindResult = {
 };
 
 function createClient() {
+  configureSendonProxy();
   return new Sendon({ id: env.sendon.id, apikey: env.sendon.apiKey });
 }
 
