@@ -46,5 +46,8 @@ export const env = {
     get from() {
       return getEnv("SENDON_FROM");
     },
+    get proxyUrl() {
+      return process.env.SENDON_PROXY_URL || undefined;
+    },
   },
 };
