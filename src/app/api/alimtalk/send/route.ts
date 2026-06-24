@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
   const { data: profiles } = await adminClient
     .from("profiles")
-    .select("id, phone")
+    .select("id, phone, sms_consent")
     .in("id", user_ids);
 
   const logs = user_ids.map((user_id) => ({
@@ -53,6 +53,9 @@ export async function POST(request: NextRequest) {
       const profile = profiles?.find((p) => p.id === log.user_id);
       if (!profile?.phone) {
         return { logId: log.id, accepted: false, groupId: undefined, error: "전화번호 없음" };
+      }
+      if (!profile.sms_consent) {
+        return { logId: log.id, accepted: false, groupId: undefined, error: "SMS 수신 미동의" };
       }
       const r = await sendSms(profile.phone, content, send_type === "scheduled" ? (scheduled_at ?? null) : null, title);
       if (!r.success) {
