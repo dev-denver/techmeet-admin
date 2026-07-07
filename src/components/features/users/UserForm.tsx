@@ -38,7 +38,7 @@ const userSchema = z.object({
   notification_new_project: z.boolean(),
   notification_application_update: z.boolean(),
   notification_marketing: z.boolean(),
-  contract_type: z.enum(["business", "individual"]).nullable(),
+  contract_type: z.enum(["business", "individual", "employee"]).nullable(),
   business_name: z.string().nullable(),
   business_number: z.string().nullable(),
   business_address: z.string().nullable(),
@@ -69,7 +69,7 @@ export function UserForm({ user }: UserFormProps) {
       notification_new_project: user.notification_new_project,
       notification_application_update: user.notification_application_update,
       notification_marketing: user.notification_marketing,
-      contract_type: (user.contract_type as "business" | "individual" | null) ?? null,
+      contract_type: (user.contract_type as "business" | "individual" | "employee" | null) ?? null,
       business_name: user.business_name ?? null,
       business_number: user.business_number ?? null,
       business_address: user.business_address ?? null,
@@ -327,6 +327,7 @@ export function UserForm({ user }: UserFormProps) {
                       <SelectItem value="none">선택 안 함</SelectItem>
                       <SelectItem value="individual">개인 (3.3%)</SelectItem>
                       <SelectItem value="business">사업자</SelectItem>
+                      <SelectItem value="employee">정규직</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

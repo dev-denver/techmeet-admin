@@ -27,6 +27,7 @@ export type AccountStatus = keyof typeof ACCOUNT_STATUS;
 export const CONTRACT_TYPE = {
   individual: { label: "개인 (3.3%)", color: "outline" },
   business: { label: "사업자", color: "default" },
+  employee: { label: "정규직", color: "secondary" },
 } as const;
 
 export type ContractTypeKey = keyof typeof CONTRACT_TYPE;
