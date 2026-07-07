@@ -74,8 +74,8 @@ create table if not exists public.profiles (
   gender                           text                                                                   -- 성별 (male/female)
     check (gender in ('male', 'female')),
   address                          text,                                                                  -- 주소
-  contract_type                    text                                                                   -- 계약 형태 (business/individual=3.3%)
-    check (contract_type in ('business', 'individual')),
+  contract_type                    text                                                                   -- 계약 형태 (business/individual=3.3%/employee=정규직)
+    check (contract_type in ('business', 'individual', 'employee')),
   business_name                    text,                                                                  -- 사업자명
   business_number                  text,                                                                  -- 사업자 번호 (000-00-00000)
   business_address                 text,                                                                  -- 사업장 주소

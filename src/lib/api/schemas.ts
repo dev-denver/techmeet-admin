@@ -10,7 +10,7 @@ export const userUpdateSchema = z.object({
   notification_new_project: z.boolean().optional(),
   notification_application_update: z.boolean().optional(),
   notification_marketing: z.boolean().optional(),
-  contract_type: z.enum(["business", "individual"]).nullable().optional(),
+  contract_type: z.enum(["business", "individual", "employee"]).nullable().optional(),
   business_name: z.string().nullable().optional(),
   business_number: z.string().nullable().optional(),
   business_address: z.string().nullable().optional(),
